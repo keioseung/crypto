@@ -1,34 +1,47 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
+import Card from '@/components/ui/Card';
+import LineChart, { SeriesPoint } from '@/components/ui/LineChart';
+import { useCandles } from '@/hooks/useCandles';
+
+function backtestCloseCrossover(prices: number[]) {
+  let cash = 1;
+  let pos = 0; // position in units
+  const equity: number[] = [];
+  for (let i = 1; i < prices.length; i++) {
+    const up = prices[i] > prices[i-1];
+    if (up && cash > 0) { pos = cash / prices[i]; cash = 0; }
+    if (!up && pos > 0) { cash = pos * prices[i]; pos = 0; }
+    const cur = cash > 0 ? cash : pos * prices[i];
+    equity.push(cur);
+  }
+  const ret = equity[equity.length-1] - 1;
+  const maxDD = equity.reduce((acc, v, idx) => {
+    const peak = Math.max(...equity.slice(0, idx+1));
+    return Math.min(acc, (v-peak)/peak);
+  }, 0);
+  return { equity, ret, maxDD };
+}
 
 const Backtesting: React.FC = () => {
+  const { data: candles = [] } = useCandles('KRW-BTC', 60, 300);
+  const prices = useMemo(()=>candles.map(c=>c.close), [candles]);
+  const [equity, setEquity] = useState<number[]>([]);
+
+  function run() {
+    const r = backtestCloseCrossover(prices);
+    setEquity(r.equity);
+  }
+
+  const curve: SeriesPoint[] = equity.map((v, i) => ({ x: i, y: v }));
+
   return (
     <div className="space-y-6">
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Backtesting</h2>
-        <p className="text-gray-600">Test your trading strategies with historical data</p>
-      </div>
-      
-      <div className="bg-white shadow rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Strategy Performance</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="text-center">
-            <p className="text-2xl font-bold text-green-600">+15.2%</p>
-            <p className="text-sm text-gray-600">Total Return</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-blue-600">0.85</p>
-            <p className="text-sm text-gray-600">Sharpe Ratio</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-purple-600">12.5%</p>
-            <p className="text-sm text-gray-600">Max Drawdown</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-orange-600">68%</p>
-            <p className="text-sm text-gray-600">Win Rate</p>
-          </div>
-        </div>
-      </div>
+      <Card title="Backtest Controls" actions={<button className="btn-primary" onClick={run}>Run</button>}>
+        <div className="text-sm text-dark-300">Strategy: Close > PrevClose (toy example)</div>
+      </Card>
+      <Card title="Equity Curve">
+        <LineChart series={[{ label: 'Equity', data: curve, color: '#34d399' }]} height={280} />
+      </Card>
     </div>
   );
 };
