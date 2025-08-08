@@ -1,0 +1,43 @@
+# Frontend files (we're only deploying backend)
+frontend/
+crypto.html
+
+# Development files
+*.log
+.env.local
+.env.development
+.env.test
+
+# Build artifacts
+dist/
+build/
+.next/
+.nuxt/
+
+# Dependencies
+node_modules/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+README.md
+*.md
+
+# Railway configs (except main one)
+railway-*.json
+
+# Start scripts
+start.bat
+start.sh
