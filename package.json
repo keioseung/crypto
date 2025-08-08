@@ -17,8 +17,7 @@
     "build:backend": "cd backend && npm run build",
     "start": "cd backend && npm start",
     "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
-    "preview": "cd frontend && npm run preview",
-    "postinstall": "cd backend && npm install"
+    "preview": "cd frontend && npm run preview"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
