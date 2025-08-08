@@ -3,166 +3,113 @@ import Card from '@/components/ui/Card';
 import LineChart, { SeriesPoint } from '@/components/ui/LineChart';
 import MarketPicker from '@/components/controls/MarketPicker';
 import ModelHelp from '@/components/controls/ModelHelp';
+import ModelCatalog from '@/components/ai/ModelCatalog';
 import { useCandles } from '@/hooks/useCandles';
 import axios from 'axios';
 import { getApiUrl } from '@/config/api';
-import { Tab } from '@headlessui/react'
 
-// New model definitions
-const regressionModels = [
-  { key: 'sma', label: 'SMA (Simple Moving Average)', color: '#10b981' },
-  { key: 'ema', label: 'EMA (Exponential Moving Average)', color: '#f59e0b' },
-  { key: 'ensemble', label: 'Ensemble (SMA + EMA)', color: '#e879f9' },
-  { key: 'lstm', label: 'LSTM (Coming Soon)', color: '#3b82f6', disabled: true },
-  { key: 'gru', label: 'GRU (Coming Soon)', color: '#ef4444', disabled: true },
+const baseModels = [
+  { key: 'sma', label: 'SMA', color: '#10b981' },
+  { key: 'ema', label: 'EMA', color: '#f59e0b' },
+  { key: 'lr', label: 'LR', color: '#e879f9' },
+  { key: 'momentum', label: 'Momentum', color: '#22c55e' },
+  { key: 'meanrev', label: 'MeanRev', color: '#60a5fa' },
+  { key: 'ensemble', label: 'Ensemble', color: '#a78bfa' },
 ];
-
-const classificationModels = [
-    { key: 'trend', label: 'Simple Trend Classifier' },
-    { key: 'rsi_threshold', label: 'RSI-based (Coming Soon)', disabled: true },
-    { key: 'random_forest', label: 'Random Forest (Coming Soon)', disabled: true },
-]
-
-// A simple helper for class names
-function classNames(...classes: string[]) {
-    return classes.filter(Boolean).join(' ')
-}
 
 const Predictions: React.FC = () => {
   const [market, setMarket] = useState('KRW-BTC');
   const [minutes, setMinutes] = useState(60);
   const [steps, setSteps] = useState(24);
-  const [selectedRegression, setSelectedRegression] = useState<string[]>(['ensemble']);
+  const [selected, setSelected] = useState<string[]>(['ensemble']);
   const { data: candles = [] } = useCandles(market, minutes, 240);
-
-  const [trendResult, setTrendResult] = useState({ label: 'N/A', confidence: 0 });
 
   const base: SeriesPoint[] = useMemo(() => candles.map(c => ({ x: c.timestamp, y: c.close })), [candles]);
   const [preds, setPreds] = useState<Record<string, SeriesPoint[]>>({});
+  const [stackWeights, setStackWeights] = useState<Record<string, number>>({ sma: 1, ema: 1, lr: 1 });
+  const [multiCls, setMultiCls] = useState<any | null>(null);
 
-  async function runRegression() {
+  async function runPredict() {
+    if (candles.length < 10) return;
     const series = candles.map(c => c.close);
-    const modelsToRun = selectedRegression.filter(m => !regressionModels.find(rm => rm.key === m)?.disabled);
-    const results = await Promise.all(modelsToRun.map(m => axios.post(getApiUrl('/api/v1/predictions'), { series, model: m, steps })));
+    const results = await Promise.all(selected.map(m => axios.post(getApiUrl('/api/v1/predictions'), { series, model: m, steps })));
     const next: Record<string, SeriesPoint[]> = {};
-    modelsToRun.forEach((m, i) => {
+    selected.forEach((m, i) => {
       next[m] = results[i].data.points.map((p: any) => ({ x: p.timestamp, y: p.value }));
     });
     setPreds(next);
   }
 
-  async function runClassification() {
-      const series = candles.map(c => c.close).slice(-20); // Use last 20 points
-      const result = await axios.post(getApiUrl('/api/v1/predictions/classify'), { series });
-      setTrendResult(result.data);
+  async function runStack() {
+    if (candles.length < 10) return;
+    const series = candles.map(c => c.close);
+    const models = Object.keys(stackWeights);
+    const weights = models.map(k => stackWeights[k]);
+    const { data } = await axios.post(getApiUrl('/api/v1/predictions/stack'), { series, models, weights, steps });
+    setPreds(prev => ({ ...prev, stack: data.points.map((p: any)=>({ x: p.timestamp, y: p.value })) }));
   }
+
+  async function runMultiCls() {
+    if (candles.length < 10) return;
+    const series = candles.map(c => c.close);
+    const { data } = await axios.post(getApiUrl('/api/v1/classify/multi'), { series });
+    setMultiCls(data);
+  }
+
+  useEffect(() => { runPredict(); runMultiCls(); }, [candles, selected, steps]);
 
   const lines = [
     { label: 'Close', data: base, color: '#60a5fa' },
-    ...selectedRegression.map((m) => ({
-        label: regressionModels.find(x=>x.key===m)!.label,
-        data: preds[m] || [],
-        color: regressionModels.find(x=>x.key===m)!.color,
-        dashed: true
-    }))
+    ...selected.map((m) => ({ label: baseModels.find(x=>x.key===m)!.label, data: preds[m] || [], color: baseModels.find(x=>x.key===m)!.color, dashed: true })),
+    ...(preds.stack ? [{ label: 'Stack', data: preds.stack, color: '#f472b6' }] : [])
   ];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-      {/* Left Column: Controls */}
-      <div className="lg:col-span-1 space-y-6">
-        <Card title="Market & Timeframe">
-            <MarketPicker market={market} onMarket={setMarket} minutes={minutes} onMinutes={setMinutes} />
-        </Card>
-
-        <Tab.Group>
-            <Tab.List className="flex space-x-1 rounded-xl bg-blue-900/20 p-1">
-                <Tab className={({ selected }) =>
-                    classNames(
-                    'w-full rounded-lg py-2.5 text-sm font-medium leading-5 text-blue-700',
-                    'ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
-                    selected
-                        ? 'bg-white shadow'
-                        : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
-                    )
-                }>Regression</Tab>
-                <Tab className={({ selected }) =>
-                    classNames(
-                    'w-full rounded-lg py-2.5 text-sm font-medium leading-5 text-blue-700',
-                    'ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
-                    selected
-                        ? 'bg-white shadow'
-                        : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
-                    )
-                }>Classification</Tab>
-            </Tab.List>
-            <Tab.Panels className="mt-2">
-                <Tab.Panel className="rounded-xl bg-gray-800 p-3 ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2">
-                    <div className="space-y-4">
-                        <h3 className="text-white font-semibold">Price Prediction Models</h3>
-                        <div className="space-y-2">
-                            {regressionModels.map(m => (
-                                <label key={m.key} className={`flex items-center space-x-2 ${m.disabled ? 'cursor-not-allowed text-gray-500' : 'cursor-pointer'}`}>
-                                    <input
-                                        type="checkbox"
-                                        className="checkbox"
-                                        value={m.key}
-                                        checked={selectedRegression.includes(m.key)}
-                                        disabled={m.disabled}
-                                        onChange={(e) => {
-                                            if (e.target.checked) {
-                                                setSelectedRegression([...selectedRegression, m.key])
-                                            } else {
-                                                setSelectedRegression(selectedRegression.filter(k => k !== m.key))
-                                            }
-                                        }}
-                                    />
-                                    <span>{m.label}</span>
-                                </label>
-                            ))}
-                        </div>
-                        <div>
-                            <label className="label">Prediction Steps</label>
-                            <input type="number" min={6} max={72} step={6} className="input w-full" value={steps} onChange={e=>setSteps(Number(e.target.value))} />
-                        </div>
-                        <button className="btn-primary w-full" onClick={runRegression}>Run Regression</button>
-                    </div>
-                </Tab.Panel>
-                <Tab.Panel className="rounded-xl bg-gray-800 p-3 ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2">
-                    <div className="space-y-4">
-                        <h3 className="text-white font-semibold">Trend Prediction Models</h3>
-                        <div className="space-y-2">
-                            {classificationModels.map(m => (
-                                <label key={m.key} className={`flex items-center space-x-2 ${m.disabled ? 'cursor-not-allowed text-gray-500' : 'cursor-pointer'}`}>
-                                    <input type="radio" name="classification-model" className="radio" value={m.key} defaultChecked={m.key === 'trend'} disabled={m.disabled} />
-                                    <span>{m.label}</span>
-                                </label>
-                            ))}
-                        </div>
-                        <button className="btn-primary w-full" onClick={runClassification}>Run Classification</button>
-
-                        <div className="pt-4">
-                            <h4 className="font-semibold text-white">Result</h4>
-                            <div className="text-center p-4 bg-gray-900 rounded-lg mt-2">
-                                <span className={`text-2xl font-bold ${
-                                    trendResult.label === 'bullish' ? 'text-green-500' :
-                                    trendResult.label === 'bearish' ? 'text-red-500' : 'text-gray-400'
-                                }`}>{trendResult.label.toUpperCase()}</span>
-                                <p className="text-sm text-gray-400">Confidence: {(trendResult.confidence * 100).toFixed(1)}%</p>
-                            </div>
-                        </div>
-                    </div>
-                </Tab.Panel>
-            </Tab.Panels>
-        </Tab.Group>
-      </div>
-
-      {/* Right Column: Chart and Results */}
-      <div className="lg:col-span-3 space-y-6">
-        <Card title="Prediction Chart">
-            <LineChart series={lines as any} height={450} />
-        </Card>
-      </div>
+    <div className="space-y-6">
+      <Card title="Prediction Controls" actions={
+        <div className="flex flex-wrap gap-2">
+          <MarketPicker market={market} onMarket={setMarket} minutes={minutes} onMinutes={setMinutes} />
+          <select className="input w-44" multiple value={selected} onChange={(e)=> setSelected(Array.from(e.target.selectedOptions).map(o=>o.value))}>
+            {baseModels.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
+          </select>
+          <input type="number" min={6} max={72} step={6} className="input w-28" value={steps} onChange={e=>setSteps(Number(e.target.value))} />
+        </div>
+      }>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <LineChart series={lines as any} height={360} />
+            <Card title="Stacking (weights)">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                {Object.keys(stackWeights).map((k) => (
+                  <div key={k} className="space-y-1">
+                    <div className="text-white/80">{k.toUpperCase()}</div>
+                    <input type="range" min={0} max={3} step={0.1} value={stackWeights[k]} onChange={(e)=>setStackWeights(s=>({...s, [k]: Number(e.target.value)}))} />
+                    <div className="text-dark-300">{stackWeights[k].toFixed(1)}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-2">
+                <button className="btn-primary" onClick={runStack}>Run Stack</button>
+              </div>
+            </Card>
+          </div>
+          <div className="space-y-4">
+            <ModelHelp />
+            <Card title="Model Catalog"><ModelCatalog /></Card>
+            <Card title="Multi Classification">
+              <div className="text-sm text-white/80">
+                {multiCls ? (
+                  <ul className="space-y-1">
+                    <li>Trend: <span className="text-emerald-400">{multiCls.trend.label}</span> ({(multiCls.trend.confidence*100).toFixed(1)}%)</li>
+                    <li>RSI: <span className="text-sky-400">{multiCls.rsi.label}</span> ({(multiCls.rsi.confidence*100).toFixed(1)}%)</li>
+                    <li>Vol: <span className="text-amber-400">{multiCls.vol.label}</span> ({(multiCls.vol.confidence*100).toFixed(1)}%)</li>
+                  </ul>
+                ) : 'Loading...'}
+              </div>
+            </Card>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 };

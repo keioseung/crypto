@@ -110,6 +110,33 @@ app.post('/api/v1/predictions', async (req, res) => {
   }
 });
 
+app.post('/api/v1/predictions/stack', async (req, res) => {
+  try {
+    const { series, models = ['sma','ema','lr'], weights = [], steps = 20 } = req.body as { series: number[]; models?: string[]; weights?: number[]; steps?: number };
+    if (!Array.isArray(series) || series.length < 10) return res.status(400).json({ error: 'invalid_series' });
+    const list = models.length ? models : ['sma','ema','lr'];
+    const w = (weights && weights.length === list.length ? weights : Array.from({length:list.length},()=>1));
+    const sum = w.reduce((a,b)=>a+b,0) || 1;
+    const norm = w.map(x=>x/sum);
+    const preds = await Promise.all(list.map((m)=>{
+      if (m === 'sma') return Promise.resolve(smaPredict(series, 10, steps));
+      if (m === 'ema') return Promise.resolve(emaPredict(series, 12, steps));
+      if (m === 'lr') return Promise.resolve(linearRegressionPredict(series, steps));
+      if (m === 'momentum') return Promise.resolve(momentumPredict(series, 6, steps));
+      if (m === 'meanrev') return Promise.resolve(meanReversionPredict(series, 20, steps));
+      return Promise.resolve(ensemblePredict(series, steps));
+    }));
+    const points = preds[0].points.map((_, i) => {
+      const timestamp = preds[0].points[i].timestamp;
+      const value = preds.reduce((acc, p, j) => acc + (p.points[i]?.value ?? 0) * norm[j], 0);
+      return { timestamp, value };
+    });
+    res.json({ model: `Stack(${list.join('+')})`, weights: norm, horizon: `${steps}m`, points, components: preds.map(p=>({ model: p.model, points: p.points })) });
+  } catch (e: any) {
+    res.status(500).json({ error: 'failed_to_stack', detail: e?.message });
+  }
+});
+
 // Classification
 app.post('/api/v1/classify', async (req, res) => {
   try {
@@ -120,6 +147,19 @@ app.post('/api/v1/classify', async (req, res) => {
     return res.json(classifyTrend(series.slice(-60)));
   } catch (e: any) {
     res.status(500).json({ error: 'failed_to_classify', detail: e?.message });
+  }
+});
+
+app.post('/api/v1/classify/multi', async (req, res) => {
+  try {
+    const { series } = req.body as { series: number[] };
+    if (!Array.isArray(series) || series.length < 10) return res.status(400).json({ error: 'invalid_series' });
+    const trend = classifyTrend(series.slice(-60));
+    const rsi = classifyRSI(series);
+    const vol = classifyVolatility(series);
+    res.json({ trend, rsi, vol });
+  } catch (e: any) {
+    res.status(500).json({ error: 'failed_to_classify_multi', detail: e?.message });
   }
 });
 
