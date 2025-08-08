@@ -4,6 +4,7 @@ import http from 'http';
 import { Server as IOServer } from 'socket.io';
 import { fetchTickers, fetchMinuteCandles, fetchOrderbook, fetchMarkets } from './services/upbitService';
 import { smaPredict, emaPredict, ensemblePredict, classifyTrend } from './services/aiService';
+import { fetchUpbitMinutesByDays, analyzeFixedPeriodProfit, rsi as rsiCalc, macd as macdCalc, bollinger as bbCalc, atr as atrCalc } from './services/researchService';
 
 const app = express();
 const server = http.createServer(app);
@@ -161,6 +162,40 @@ app.post('/api/v1/classify/multi', async (req, res) => {
   } catch (e: any) {
     res.status(500).json({ error: 'failed_to_classify_multi', detail: e?.message });
   }
+});
+
+app.get('/api/v1/research/candles', async (req, res) => {
+  try {
+    const market = (req.query.market as string) || 'KRW-BTC';
+    const minutes = parseInt((req.query.minutes as string) || '60', 10);
+    const days = parseInt((req.query.days as string) || '30', 10);
+    const data = await fetchUpbitMinutesByDays(market, minutes, days);
+    res.json(data);
+  } catch (e:any) { res.status(500).json({ error: 'failed_to_fetch', detail: e?.message }); }
+});
+
+app.post('/api/v1/research/fixed-period', async (req, res) => {
+  try {
+    const { market = 'KRW-BTC', minutes = 1, days = 30, holdingMinutes = 3 } = req.body || {};
+    const data = await fetchUpbitMinutesByDays(market, minutes, days);
+    const result = analyzeFixedPeriodProfit(data, holdingMinutes);
+    res.json(result);
+  } catch (e:any) { res.status(500).json({ error: 'failed_to_analyze', detail: e?.message }); }
+});
+
+app.post('/api/v1/research/indicators', async (req, res) => {
+  try {
+    const { market = 'KRW-BTC', minutes = 60, days = 30 } = req.body || {};
+    const data = await fetchUpbitMinutesByDays(market, minutes, days);
+    const close = data.map(c=>c.close);
+    const ind = {
+      rsi: rsiCalc(close, 14),
+      macd: macdCalc(close, 12, 26, 9),
+      bb: bbCalc(close, 20, 2),
+      atr: atrCalc(data, 14)
+    };
+    res.json(ind);
+  } catch (e:any) { res.status(500).json({ error: 'failed_to_indicators', detail: e?.message }); }
 });
 
 // Socket.IO: per-socket polling subscription
