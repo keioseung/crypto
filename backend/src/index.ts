@@ -51,6 +51,16 @@ app.get('/health', (req, res) => {
   });
 });
 
+// 루트 경로 테스트
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'CryptoAI Backend is running!',
+    timestamp: new Date().toISOString(),
+    port: PORT,
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
 // API 라우트 설정
 setupRoutes(app);
 
