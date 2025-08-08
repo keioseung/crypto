@@ -8,7 +8,8 @@ import {
   Filler,
   Tooltip,
   Legend,
-  TimeScale
+  TimeScale,
+  ChartData
 } from 'chart.js';
 import 'chartjs-adapter-date-fns';
 import { Line } from 'react-chartjs-2';
@@ -23,11 +24,11 @@ type LineChartProps = {
 };
 
 const LineChart: React.FC<LineChartProps> = ({ series, height = 280 }) => {
-  const data = {
+  const data: ChartData<'line', SeriesPoint[], unknown> = {
     datasets: series.map(s => ({
       label: s.label,
       data: s.data,
-      parsing: false,
+      parsing: false as const,
       borderColor: s.color,
       backgroundColor: s.fill ? `${s.color}33` : s.color,
       borderWidth: 2,
