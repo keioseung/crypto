@@ -198,6 +198,31 @@ app.post('/api/v1/research/indicators', async (req, res) => {
   } catch (e:any) { res.status(500).json({ error: 'failed_to_indicators', detail: e?.message }); }
 });
 
+app.post('/api/v1/research/indicators/all', async (req, res) => {
+  try {
+    const { market = 'KRW-BTC', minutes = 60, days = 30 } = req.body || {};
+    const data = await fetchUpbitMinutesByDays(market, minutes, days);
+    const close = data.map(c=>c.close);
+    const pack = {
+      rsi: rsiCalc(close, 14),
+      macd: macdCalc(close, 12, 26, 9),
+      bb: bbCalc(close, 20, 2),
+      atr: atrCalc(data, 14),
+      adxdi: adxAndDI(data, 14),
+      psar: parabolicSAR(data, 0.02, 0.2),
+      cci: cci(data, 20),
+      stochastic: stochastic(data, 14, 3),
+      obv: obv(data),
+      vo: volumeOscillator(data, 5, 20),
+      adline: adLine(data),
+      keltner: keltnerChannel(data, 20, 2),
+      ichimoku: ichimoku(data),
+      pivots: pivotPoints(data)
+    };
+    res.json(pack);
+  } catch (e:any) { res.status(500).json({ error: 'failed_to_indicators_all', detail: e?.message }); }
+});
+
 // Socket.IO: per-socket polling subscription
 io.on('connection', (socket) => {
   let timer: NodeJS.Timeout | null = null;
