@@ -14,19 +14,45 @@ const Settings = lazy(() => import('./pages/Settings'))
 
 function App() {
   return (
-    <Layout>
-      <Suspense fallback={<LoadingSpinner />}>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/markets" element={<Markets />} />
-          <Route path="/predictions" element={<Predictions />} />
-          <Route path="/technical" element={<TechnicalAnalysis />} />
-          <Route path="/backtesting" element={<Backtesting />} />
-          <Route path="/portfolio" element={<Portfolio />} />
-          <Route path="/settings" element={<Settings />} />
-        </Routes>
-      </Suspense>
-    </Layout>
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <Dashboard />
+          </Suspense>
+        } />
+        <Route path="markets" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <Markets />
+          </Suspense>
+        } />
+        <Route path="predictions" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <Predictions />
+          </Suspense>
+        } />
+        <Route path="technical" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <TechnicalAnalysis />
+          </Suspense>
+        } />
+        <Route path="backtesting" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <Backtesting />
+          </Suspense>
+        } />
+        <Route path="portfolio" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <Portfolio />
+          </Suspense>
+        } />
+        <Route path="settings" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <Settings />
+          </Suspense>
+        } />
+      </Route>
+    </Routes>
   )
 }
 
