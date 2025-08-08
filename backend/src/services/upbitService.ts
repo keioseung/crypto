@@ -11,6 +11,15 @@ export type Candle = {
   volume: number;
 };
 
+export async function fetchMarkets(isDetails: boolean = false) {
+  const { data } = await axios.get(`${UPBIT_API_URL}/market/all`, {
+    params: { isDetails },
+    headers: { Accept: 'application/json' },
+    timeout: 10000,
+  });
+  return data;
+}
+
 export async function fetchTickers(markets: string[] = ['KRW-BTC','KRW-ETH']) {
   const query = markets.join(',');
   const { data } = await axios.get(`${UPBIT_API_URL}/ticker`, {

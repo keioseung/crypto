@@ -13,6 +13,12 @@ const Markets: React.FC = () => {
   const [minutes, setMinutes] = useState(60);
   const { data: candles = [] } = useCandles(market, minutes, 240);
   const [orderbook, setOrderbook] = useState<any | null>(null);
+  const [supported, setSupported] = useState<any[]>([]);
+
+  useEffect(() => { (async()=>{
+    const { data } = await axios.get(getApiUrl('/api/v1/markets/supported'));
+    setSupported(data.filter((m:any)=>m.market.startsWith('KRW-')));
+  })(); }, []);
 
   useEffect(() => {
     const load = async () => {
@@ -38,8 +44,14 @@ const Markets: React.FC = () => {
           <Card title="Orderbook" >
             <Orderbook bids={orderbook.bids} asks={orderbook.asks} />
           </Card>
-          <Card title="Recent Ticks (mock)">
-            <div className="text-sm text-dark-300">Coming soon: real-time ticks via WebSocket</div>
+          <Card title="Supported (KRW)" >
+            <div className="max-h-64 overflow-auto text-sm">
+              {supported.slice(0, 100).map((m:any)=> (
+                <button key={m.market} className={`block w-full text-left px-2 py-1 rounded ${m.market===market?'bg-dark-800 text-white':'text-dark-300 hover:bg-dark-800/60'}`} onClick={()=>setMarket(m.market)}>
+                  {m.market} <span className="text-dark-500">{m.korean_name}</span>
+                </button>
+              ))}
+            </div>
           </Card>
         </div>
       )}

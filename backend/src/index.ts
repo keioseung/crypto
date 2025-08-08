@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import http from 'http';
 import { Server as IOServer } from 'socket.io';
-import { fetchTickers, fetchMinuteCandles, fetchOrderbook } from './services/upbitService';
+import { fetchTickers, fetchMinuteCandles, fetchOrderbook, fetchMarkets } from './services/upbitService';
 import { smaPredict, emaPredict, ensemblePredict, classifyTrend } from './services/aiService';
 
 const app = express();
@@ -80,6 +80,15 @@ app.get('/api/v1/markets/orderbook', async (req, res) => {
     res.json(data);
   } catch (e: any) {
     res.status(500).json({ error: 'failed_to_fetch_orderbook', detail: e?.message });
+  }
+});
+
+app.get('/api/v1/markets/supported', async (req, res) => {
+  try {
+    const data = await fetchMarkets(true);
+    res.json(data);
+  } catch (e: any) {
+    res.status(500).json({ error: 'failed_to_fetch_markets', detail: e?.message });
   }
 });
 

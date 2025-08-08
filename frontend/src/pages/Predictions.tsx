@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Card from '@/components/ui/Card';
 import LineChart, { SeriesPoint } from '@/components/ui/LineChart';
 import MarketPicker from '@/components/controls/MarketPicker';
+import ModelHelp from '@/components/controls/ModelHelp';
 import { useCandles } from '@/hooks/useCandles';
 import axios from 'axios';
 import { getApiUrl } from '@/config/api';
