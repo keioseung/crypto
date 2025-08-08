@@ -1,17 +1,13 @@
-# Frontend files (we're only deploying backend)
-frontend/
-crypto.html
+# Remove frontend exclusion to allow Railway to build frontend service
+# (This file impacts each service repo snapshot independently)
 
 # Development files
 *.log
 .env.local
 .env.development
 .env.test
-.env.example
 
 # Build artifacts
-dist/
-build/
 .next/
 .nuxt/
 
@@ -42,10 +38,6 @@ railway-*.json
 # Start scripts
 start.bat
 start.sh
-
-# Package files
-package-lock.json
-yarn.lock
 
 # Test files
 **/*.test.js

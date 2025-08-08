@@ -6,15 +6,15 @@ Railway 백엔드 서비스에서 다음 환경변수들을 설정하세요:
 
 ### 필수 환경변수
 ```
-PORT=6060
+PORT=3020
 NODE_ENV=production
-FRONTEND_URL=https://crypto-production-60f9.up.railway.app
+FRONTEND_URL=https://photo-production-7b03.up.railway.app
 ```
 
 ### 서버 설정
 ```
 LOG_LEVEL=info
-CORS_ORIGIN=https://crypto-production-60f9.up.railway.app
+CORS_ORIGIN=https://photo-production-7b03.up.railway.app
 HELMET_ENABLED=true
 COMPRESSION_ENABLED=true
 BODY_PARSER_LIMIT=10mb
@@ -58,8 +58,8 @@ Railway 프론트엔드 서비스에서 다음 환경변수들을 설정하세�
 
 ### 필수 환경변수
 ```
-VITE_BACKEND_URL=https://crypto-production-6042.up.railway.app
-VITE_WS_URL=wss://crypto-production-6042.up.railway.app
+VITE_BACKEND_URL=https://photo-production-d5b0.up.railway.app
+VITE_WS_URL=wss://photo-production-d5b0.up.railway.app
 ```
 
 ### 앱 설정
@@ -116,7 +116,7 @@ VITE_ERROR_REPORTING=false
 - [Railway Dashboard](https://railway.app/dashboard)에 로그인
 
 ### 2. 백엔드 서비스 선택
-- `crypto-production-6042` 서비스 클릭
+- `photo-production-d5b0` 서비스 클릭
 - **Variables** 탭 선택
 
 ### 3. 환경변수 추가
@@ -124,7 +124,7 @@ VITE_ERROR_REPORTING=false
 - 위의 백엔드 환경변수들을 하나씩 추가
 
 ### 4. 프론트엔드 서비스 선택
-- `crypto-production-60f9` 서비스 클릭
+- `photo-production-7b03` 서비스 클릭
 - **Variables** 탭 선택
 
 ### 5. 환경변수 추가
@@ -141,11 +141,11 @@ VITE_ERROR_REPORTING=false
 
 ### 백엔드 테스트
 ```bash
-curl https://crypto-production-6042.up.railway.app/health
+curl https://photo-production-d5b0.up.railway.app/health
 ```
 
 ### 프론트엔드 테스트
-- 브라우저에서 `https://crypto-production-60f9.up.railway.app` 접속
+- 브라우저에서 `https://photo-production-7b03.up.railway.app` 접속
 
 ---
 

@@ -1,10 +1,10 @@
 // API Configuration
 export const API_CONFIG = {
   // Backend API URL
-  BACKEND_URL: import.meta.env.VITE_BACKEND_URL || 'https://crypto-production-6042.up.railway.app',
+  BACKEND_URL: import.meta.env.VITE_BACKEND_URL || 'https://photo-production-d5b0.up.railway.app',
   
   // WebSocket URL
-  WS_URL: import.meta.env.VITE_WS_URL || 'wss://crypto-production-6042.up.railway.app',
+  WS_URL: import.meta.env.VITE_WS_URL || 'wss://photo-production-d5b0.up.railway.app',
   
   // API Endpoints
   ENDPOINTS: {
