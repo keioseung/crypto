@@ -17,7 +17,8 @@
     "noImplicitReturns": false,
     "noImplicitThis": false,
     "noUnusedLocals": false,
-    "noUnusedParameters": false
+    "noUnusedParameters": false,
+    "allowSyntheticDefaultImports": true
   },
   "include": [
     "src/**/*"
