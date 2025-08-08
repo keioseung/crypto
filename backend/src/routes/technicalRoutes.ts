@@ -22,7 +22,7 @@ router.post('/indicators', apiRateLimiterMiddleware, async (req: Request, res: R
     const normalizedData = upbitService.normalizeCandleData(candles);
     const indicators = aiService.calculateTechnicalIndicators(normalizedData);
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         indicators,
@@ -73,7 +73,7 @@ router.post('/patterns', apiRateLimiterMiddleware, async (req: Request, res: Res
       .filter(([_, detected]) => detected)
       .map(([pattern, _]) => pattern);
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         patterns: detectedPatterns,
@@ -125,7 +125,7 @@ router.post('/support-resistance', apiRateLimiterMiddleware, async (req: Request
     const supportLevels = [s2, s1, currentLow].filter(level => level > 0);
     const resistanceLevels = [currentHigh, r1, r2];
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         pivotPoint,
@@ -184,7 +184,7 @@ router.post('/volatility', apiRateLimiterMiddleware, async (req: Request, res: R
 
     const atr = trueRanges.reduce((sum, tr) => sum + tr, 0) / trueRanges.length;
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         volatility: volatility.toFixed(2),
@@ -237,7 +237,7 @@ router.post('/momentum', apiRateLimiterMiddleware, async (req: Request, res: Res
       volumeSignal: momentum.volumeMomentum > 20 ? 'high_volume' : momentum.volumeMomentum < -20 ? 'low_volume' : 'normal'
     };
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         momentum,
@@ -289,7 +289,7 @@ router.post('/volume-analysis', apiRateLimiterMiddleware, async (req: Request, r
       lowVolume: volumes.filter(v => v < avgVolume * 0.5).length
     };
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         currentVolume,

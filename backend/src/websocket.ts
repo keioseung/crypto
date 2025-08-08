@@ -53,7 +53,7 @@ export const setupWebSocket = (io: Server) => {
         // 구독 처리
         const client = connectedClients.get(clientId);
         if (client) {
-          markets.forEach(market => {
+          markets.forEach((market: string) => {
             client.subscriptions.add(market);
             socket.join(`market_${market}`);
           });
@@ -79,7 +79,7 @@ export const setupWebSocket = (io: Server) => {
         const client = connectedClients.get(clientId);
 
         if (client && markets) {
-          markets.forEach(market => {
+          markets.forEach((market: string) => {
             client.subscriptions.delete(market);
             socket.leave(`market_${market}`);
           });

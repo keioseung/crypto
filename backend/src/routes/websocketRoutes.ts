@@ -6,9 +6,9 @@ import { logger } from '../utils/logger';
 const router = Router();
 
 // WebSocket 연결 상태 확인
-router.get('/status', apiRateLimiterMiddleware, async (req: Request, res: Response) => {
+router.get('/status', apiRateLimiterMiddleware, async (_req: Request, res: Response) => {
   try {
-    res.json({
+    return res.json({
       success: true,
       data: {
         status: 'active',
@@ -48,7 +48,7 @@ router.post('/url', apiRateLimiterMiddleware, async (req: Request, res: Response
 
     const wsUrl = upbitService.generateWebSocketUrl(markets, channels);
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         websocketUrl: wsUrl,
@@ -88,7 +88,7 @@ router.post('/subscribe', apiRateLimiterMiddleware, async (req: Request, res: Re
       status: 'active'
     };
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         subscription,
@@ -117,7 +117,7 @@ router.post('/unsubscribe', apiRateLimiterMiddleware, async (req: Request, res: 
     }
 
     // 구독 해제 처리 (실제 구현에서는 Redis나 DB에서 제거)
-    res.json({
+    return res.json({
       success: true,
       data: {
         message: 'Subscription unsubscribed successfully',
@@ -148,7 +148,7 @@ router.get('/subscriptions', apiRateLimiterMiddleware, async (req: Request, res:
       }
     ];
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         subscriptions,

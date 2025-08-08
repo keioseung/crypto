@@ -178,7 +178,7 @@ router.get('/history/:market', apiRateLimiterMiddleware, async (req: Request, re
     // 실제 구현에서는 DB에서 히스토리를 가져옴
     const history = Array.from({ length: parseInt(limit as string) }, (_, i) => ({
       id: `pred_${Date.now()}_${i}`,
-      market,
+      market: market as string,
       predictedPrice: Math.random() * 100000 + 10000,
       actualPrice: Math.random() * 100000 + 10000,
       confidence: Math.random() * 30 + 70,
