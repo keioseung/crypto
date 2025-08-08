@@ -19,6 +19,7 @@
     "socket.io-client": "^4.7.4",
     "chart.js": "^4.4.0",
     "react-chartjs-2": "^5.2.0",
+    "chartjs-adapter-date-fns": "^3.0.0",
     "lucide-react": "^0.294.0",
     "framer-motion": "^10.16.16",
     "react-hot-toast": "^2.4.1",
