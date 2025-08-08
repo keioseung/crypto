@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Outlet } from 'react-router-dom'
 import { Suspense, lazy } from 'react'
 import Layout from './components/Layout'
 import LoadingSpinner from './components/ui/LoadingSpinner'
@@ -15,7 +15,7 @@ const Settings = lazy(() => import('./pages/Settings'))
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Layout />}>
+      <Route element={<Layout />}>
         <Route index element={
           <Suspense fallback={<LoadingSpinner />}>
             <Dashboard />

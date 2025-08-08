@@ -1,41 +1,40 @@
 import React from 'react';
+import Card from '@/components/ui/Card';
 
 const Markets: React.FC = () => {
+  const rows = Array.from({ length: 8 }).map((_, i) => ({
+    market: i % 2 ? 'ETH/KRW' : 'BTC/KRW',
+    price: i % 2 ? '₩3,200,000' : '₩45,000,000',
+    change: (Math.random() * 6 - 3).toFixed(2),
+    vol: i % 2 ? '5,678 ETH' : '1,234 BTC',
+  }));
+
   return (
     <div className="space-y-6">
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Markets</h2>
-        <p className="text-gray-600">Real-time cryptocurrency market data from Upbit</p>
-      </div>
-      
-      <div className="bg-white shadow rounded-lg p-6">
+      <Card title="Markets">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Market</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Volume</th>
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="text-left text-dark-300">
+                <th className="py-2 pr-4">Market</th>
+                <th className="py-2 pr-4">Price</th>
+                <th className="py-2 pr-4">Change</th>
+                <th className="py-2 pr-4">Volume</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">BTC/KRW</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₩45,000,000</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">+2.5%</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">1,234 BTC</td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">ETH/KRW</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₩3,200,000</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600">-1.2%</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">5,678 ETH</td>
-              </tr>
+            <tbody>
+              {rows.map((r, idx) => (
+                <tr key={idx} className="border-t border-dark-700 text-white/90">
+                  <td className="py-2 pr-4">{r.market}</td>
+                  <td className="py-2 pr-4">{r.price}</td>
+                  <td className={`py-2 pr-4 ${Number(r.change) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>{r.change}%</td>
+                  <td className="py-2 pr-4 text-dark-300">{r.vol}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };
