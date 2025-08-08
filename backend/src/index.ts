@@ -67,6 +67,16 @@ app.get('/api/v1/markets/candles', async (req, res) => {
   }
 });
 
+app.get('/api/v1/markets/orderbook', async (req, res) => {
+  try {
+    const market = (req.query.market as string) || 'KRW-BTC';
+    const data = await fetchOrderbook(market);
+    res.json(data);
+  } catch (e: any) {
+    res.status(500).json({ error: 'failed_to_fetch_orderbook', detail: e?.message });
+  }
+});
+
 // Predictions
 app.post('/api/v1/predictions', async (req, res) => {
   try {

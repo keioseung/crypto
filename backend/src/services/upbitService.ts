@@ -37,3 +37,25 @@ export async function fetchMinuteCandles(market: string, minutes: number = 60, c
     volume: c.candle_acc_trade_volume,
   })).reverse();
 }
+
+export async function fetchOrderbook(market: string) {
+  const { data } = await axios.get(`${UPBIT_API_URL}/orderbook`, {
+    params: { markets: market },
+    headers: { Accept: 'application/json' },
+    timeout: 10000,
+  });
+  const ob = data[0];
+  const units: any[] = ob.orderbook_units || [];
+  const bids = units.map(u => ({ price: u.bid_price, size: u.bid_size }));
+  const asks = units.map(u => ({ price: u.ask_price, size: u.ask_size }));
+  // cumulative
+  let cum = 0;
+  const bidsCum = bids
+    .sort((a,b)=>b.price-a.price)
+    .map(b => { cum += b.size; return { ...b, cum }; });
+  cum = 0;
+  const asksCum = asks
+    .sort((a,b)=>a.price-b.price)
+    .map(a => { cum += a.size; return { ...a, cum }; });
+  return { market: ob.market, timestamp: ob.timestamp, bids: bidsCum, asks: asksCum };
+}
