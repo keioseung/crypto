@@ -196,7 +196,7 @@ class AIService {
   private lstmPrediction(data: any[], indicators: TechnicalIndicators): number {
     const lastPrice = data[data.length - 1].close;
     const trend = indicators.sma20 > indicators.sma50 ? 1 : -1;
-    const volatility = Math.abs(indicators.rsi - 50) / 50;
+    const _volatility = Math.abs(indicators.rsi - 50) / 50;
     
     // LSTM 특성을 반영한 예측
     const momentum = (lastPrice - data[Math.max(0, data.length - 10)].close) / lastPrice;
@@ -249,7 +249,7 @@ class AIService {
   }
 
   // Transformer 예측 시뮬레이션
-  private transformerPrediction(data: any[], indicators: TechnicalIndicators): number {
+  private transformerPrediction(data: any[], _indicators: TechnicalIndicators): number {
     const lastPrice = data[data.length - 1].close;
     
     // Transformer의 attention 메커니즘을 시뮬레이션
@@ -265,7 +265,7 @@ class AIService {
   }
 
   // CNN-LSTM 하이브리드 예측 시뮬레이션
-  private cnnLstmPrediction(data: any[], indicators: TechnicalIndicators): number {
+  private cnnLstmPrediction(data: any[], _indicators: TechnicalIndicators): number {
     const lastPrice = data[data.length - 1].close;
     
     // CNN 패턴 인식 시뮬레이션
@@ -295,10 +295,10 @@ class AIService {
   }
 
   // 가격 시퀀스 분석
-  private analyzePriceSequence(data: any[]): number {
-    if (data.length < 10) return 0;
+  private analyzePriceSequence(_data: any[]): number {
+    if (_data.length < 10) return 0;
     
-    const prices = data.map(d => d.close);
+    const prices = _data.map(d => d.close);
     const returns = prices.slice(1).map((price, i) => (price - prices[i]) / prices[i]);
     
     // 모멘텀과 평균 회귀 분석
@@ -309,7 +309,7 @@ class AIService {
   }
 
   // 앙상블 예측
-  async ensemblePrediction(market: string, hours: number = 24): Promise<PredictionResult> {
+  async ensemblePrediction(market: string, _hours: number = 24): Promise<PredictionResult> {
     try {
       // 데이터 가져오기
       const candles = await upbitService.getCandles(market, 'minutes', 200);
@@ -368,8 +368,8 @@ class AIService {
     // 분류 모델의 일관성
     const bullCount = classifications.filter(c => c === 'bull').length;
     const bearCount = classifications.filter(c => c === 'bear').length;
-    const neutralCount = classifications.filter(c => c === 'neutral').length;
-    const maxCount = Math.max(bullCount, bearCount, neutralCount);
+    const _neutralCount = classifications.filter(c => c === 'neutral').length;
+    const maxCount = Math.max(bullCount, bearCount, _neutralCount);
     const classificationConsistency = maxCount / classifications.length;
 
     // 최종 신뢰도 (0-1)
@@ -432,7 +432,7 @@ class AIService {
   }
 
   // 성능 메트릭 업데이트
-  private updatePerformanceMetrics(prediction: PredictionResult, actualData: any[]) {
+  private updatePerformanceMetrics(_prediction: PredictionResult, _actualData: any[]) {
     // 실제 구현에서는 예측값과 실제값을 비교하여 성능을 업데이트
     this.models.forEach((model, modelName) => {
       this.performanceMetrics.set(modelName, {
@@ -451,16 +451,16 @@ class AIService {
   }
 
   // 특정 모델 예측
-  async singleModelPrediction(market: string, modelName: string): Promise<PredictionResult> {
-    if (!this.models.has(modelName)) {
-      throw new Error(`Model ${modelName} not found`);
+  async singleModelPrediction(market: string, _modelName: string): Promise<PredictionResult> {
+    if (!this.models.has(_modelName)) {
+      throw new Error(`Model ${_modelName} not found`);
     }
 
     const candles = await upbitService.getCandles(market, 'minutes', 200);
     const normalizedData = upbitService.normalizeCandleData(candles);
     const indicators = this.calculateTechnicalIndicators(normalizedData);
 
-    const model = this.models.get(modelName);
+    const model = this.models.get(_modelName);
     const prediction = model.predict(normalizedData, indicators);
 
     return {

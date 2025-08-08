@@ -19,7 +19,7 @@ router.post('/ensemble', apiRateLimiterMiddleware, async (req: Request, res: Res
 
     const prediction = await aiService.ensemblePrediction(market, hours);
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         prediction,
@@ -51,7 +51,7 @@ router.post('/single-model', apiRateLimiterMiddleware, async (req: Request, res:
 
     const prediction = await aiService.singleModelPrediction(market, modelName);
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         prediction,
@@ -70,11 +70,11 @@ router.post('/single-model', apiRateLimiterMiddleware, async (req: Request, res:
 });
 
 // 모델 성능 조회
-router.get('/performance', apiRateLimiterMiddleware, async (req: Request, res: Response) => {
+router.get('/performance', apiRateLimiterMiddleware, async (_req: Request, res: Response) => {
   try {
     const performance = aiService.getModelPerformance();
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         performance,
@@ -110,7 +110,7 @@ router.post('/technical-indicators', apiRateLimiterMiddleware, async (req: Reque
 
     const indicators = aiService.calculateTechnicalIndicators(normalizedData);
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         indicators,
@@ -151,7 +151,7 @@ router.post('/multi-market', apiRateLimiterMiddleware, async (req: Request, res:
       }
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         predictions,
@@ -186,7 +186,7 @@ router.get('/history/:market', apiRateLimiterMiddleware, async (req: Request, re
       timestamp: new Date(Date.now() - i * 3600000).toISOString()
     }));
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         history,

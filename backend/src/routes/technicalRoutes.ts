@@ -53,7 +53,7 @@ router.post('/patterns', apiRateLimiterMiddleware, async (req: Request, res: Res
     }
 
     const candles = await upbitService.getCandles(market, 'minutes', 200);
-    const normalizedData = upbitService.normalizeCandleData(candles);
+    const _normalizedData = upbitService.normalizeCandleData(candles);
 
     // 패턴 분석 시뮬레이션
     const patterns = {
@@ -271,7 +271,7 @@ router.post('/volume-analysis', apiRateLimiterMiddleware, async (req: Request, r
     const normalizedData = upbitService.normalizeCandleData(candles);
 
     const volumes = normalizedData.map(d => d.volume);
-    const prices = normalizedData.map(d => d.close);
+    const _prices = normalizedData.map(d => d.close);
 
     // 거래량 분석
     const avgVolume = volumes.reduce((sum, vol) => sum + vol, 0) / volumes.length;

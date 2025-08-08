@@ -134,7 +134,7 @@ router.post('/unsubscribe', apiRateLimiterMiddleware, async (req: Request, res: 
 });
 
 // 구독 목록 조회
-router.get('/subscriptions', apiRateLimiterMiddleware, async (req: Request, res: Response) => {
+router.get('/subscriptions', apiRateLimiterMiddleware, async (_req: Request, res: Response) => {
   try {
     // 실제 구현에서는 DB에서 구독 목록을 가져옴
     const subscriptions = [

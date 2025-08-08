@@ -31,7 +31,7 @@ router.get('/tickers', apiRateLimiterMiddleware, async (req: Request, res: Respo
     const { markets } = req.query;
     const marketList = markets ? (markets as string).split(',') : undefined;
     
-    const tickers = await upbitService.getTickers(marketList);
+    const tickers = await upbitService.getTickers(marketList || []);
     
     res.json({
       success: true,
@@ -67,12 +67,12 @@ router.get('/candles/:market', apiRateLimiterMiddleware, async (req: Request, re
       market,
       unit as 'minutes' | 'days' | 'weeks' | 'months',
       parseInt(count as string),
-      to as string
+      to as string | undefined
     );
 
     const normalizedData = upbitService.normalizeCandleData(candles);
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         market,
@@ -106,7 +106,7 @@ router.get('/orderbook', apiRateLimiterMiddleware, async (req: Request, res: Res
     const marketList = (markets as string).split(',');
     const orderbook = await upbitService.getOrderBook(marketList);
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         orderbook,
@@ -137,7 +137,7 @@ router.get('/volume/:market', apiRateLimiterMiddleware, async (req: Request, res
 
     const volumeData = await upbitService.get24HourVolume(market);
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         ...volumeData,
@@ -176,7 +176,7 @@ router.post('/websocket-url', apiRateLimiterMiddleware, async (req: Request, res
 
     const wsUrl = upbitService.generateWebSocketUrl(markets, channels);
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         websocketUrl: wsUrl,
@@ -195,13 +195,13 @@ router.post('/websocket-url', apiRateLimiterMiddleware, async (req: Request, res
 });
 
 // 마켓 정보 요약
-router.get('/summary', apiRateLimiterMiddleware, async (req: Request, res: Response) => {
+router.get('/summary', apiRateLimiterMiddleware, async (_req: Request, res: Response) => {
   try {
     const markets = upbitService.getSupportedMarkets();
     const tickers = await upbitService.getTickers(markets);
 
     const summary = tickers.map(ticker => ({
-      market: ticker.market,
+      market: ticker['market'],
       price: ticker.trade_price,
       change_24h: ticker.signed_change_rate,
       volume_24h: ticker.acc_trade_volume_24h,
@@ -210,7 +210,7 @@ router.get('/summary', apiRateLimiterMiddleware, async (req: Request, res: Respo
       timestamp: ticker.trade_timestamp
     }));
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         summary,
