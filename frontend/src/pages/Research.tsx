@@ -3,6 +3,7 @@ import Card from '@/components/ui/Card';
 import LineChart, { SeriesPoint } from '@/components/ui/LineChart';
 import axios from 'axios';
 import { getApiUrl } from '@/config/api';
+import InfoBanner from '@/components/ui/InfoBanner';
 
 function useResearchCandles(market: string, minutes: number, days: number) {
   const [data, setData] = useState<{ timestamp: number; open: number; high: number; low: number; close: number; volume: number }[]>([]);
@@ -38,6 +39,7 @@ const Research: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <InfoBanner message="This page is for research purposes only. The data and strategies presented here are not financial advice and should not be used for actual trading. Always do your own research and consult with a financial advisor." />
       <Card title="Research Controls" actions={
         <div className="flex flex-wrap gap-2">
           <select className="input w-36" value={market} onChange={e=>setMarket(e.target.value)}>

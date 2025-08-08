@@ -7,6 +7,7 @@ import ModelCatalog from '@/components/ai/ModelCatalog';
 import { useCandles } from '@/hooks/useCandles';
 import axios from 'axios';
 import { getApiUrl } from '@/config/api';
+import InfoBanner from '@/components/ui/InfoBanner';
 
 const baseModels = [
   { key: 'sma', label: 'SMA', color: '#10b981' },
@@ -66,6 +67,21 @@ const Predictions: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <InfoBanner
+        title="AI Predictions 사용 방법"
+        steps={[
+          '1) 상단에서 마켓/주기를 선택하면 최근 데이터가 로드됩니다.',
+          '2) 예측할 모델을 하나 이상 선택하면 그래프에 자동으로 오버레이됩니다.',
+          '3) Stack 섹션에서 가중치 슬라이더를 조절하고 Run Stack을 눌러 혼합 예측을 보세요.',
+          '4) 오른쪽 패널의 Multi Classification으로 현재 상태(추세/RSI/변동성)를 확인하세요.'
+        ]}
+        tips={[
+          '모델 선택은 다중 선택 가능합니다. (Ctrl/⌘ 클릭)',
+          'Ensemble은 전반적으로 안정적인 기본 선택입니다.',
+          '변동성이 큰 구간은 EMA/Momentum, 횡보는 SMA/MeanRev가 유리합니다.'
+        ]}
+      />
+
       <Card title="Prediction Controls" actions={
         <div className="flex flex-wrap gap-2">
           <MarketPicker market={market} onMarket={setMarket} minutes={minutes} onMinutes={setMinutes} />
