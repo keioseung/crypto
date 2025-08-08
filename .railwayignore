@@ -7,6 +7,7 @@ crypto.html
 .env.local
 .env.development
 .env.test
+.env.example
 
 # Build artifacts
 dist/
@@ -41,3 +42,21 @@ railway-*.json
 # Start scripts
 start.bat
 start.sh
+
+# Package files
+package-lock.json
+yarn.lock
+
+# Test files
+**/*.test.js
+**/*.test.ts
+**/*.spec.js
+**/*.spec.ts
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
