@@ -11,7 +11,8 @@ export default defineConfig({
     },
   },
   server: {
-    port: 7000,
+    port: 1000,
+    host: true,
     proxy: {
       '/api': {
         target: 'http://localhost:5000',
@@ -33,4 +34,7 @@ export default defineConfig({
       },
     },
   },
+  define: {
+    global: 'globalThis',
+  }
 })
