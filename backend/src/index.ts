@@ -1,9 +1,15 @@
 import express from 'express';
 import cors from 'cors';
-import { fetchTickers, fetchMinuteCandles } from './services/upbitService';
+import http from 'http';
+import { Server as IOServer } from 'socket.io';
+import { fetchTickers, fetchMinuteCandles, fetchOrderbook } from './services/upbitService';
 import { smaPredict, emaPredict, ensemblePredict, classifyTrend } from './services/aiService';
 
 const app = express();
+const server = http.createServer(app);
+const io = new IOServer(server, {
+  cors: { origin: process.env.FRONTEND_URL || '*', credentials: true }
+});
 const PORT = parseInt(process.env.PORT || '6060', 10);
 
 console.log('🚀 Starting CryptoAI Backend Server...');
@@ -93,7 +99,7 @@ app.post('/api/v1/predictions', async (req, res) => {
 });
 
 // Classification
-app.post('/api/v1/predictions/classify', async (req, res) => {
+app.post('/api/v1/classify', async (req, res) => {
   try {
     const { series } = req.body as { series: number[] };
     if (!Array.isArray(series) || series.length < 10) return res.status(400).json({ error: 'invalid_series' });
@@ -102,6 +108,31 @@ app.post('/api/v1/predictions/classify', async (req, res) => {
   } catch (e: any) {
     res.status(500).json({ error: 'failed_to_classify', detail: e?.message });
   }
+});
+
+// Socket.IO: per-socket polling subscription
+io.on('connection', (socket) => {
+  let timer: NodeJS.Timeout | null = null;
+  let currentMarket = 'KRW-BTC';
+
+  const start = () => {
+    if (timer) clearInterval(timer);
+    timer = setInterval(async () => {
+      try {
+        const ob = await fetchOrderbook(currentMarket);
+        socket.emit('orderbook', ob);
+      } catch {}
+    }, 3000);
+  };
+
+  socket.on('subscribe:orderbook', (market: string) => {
+    currentMarket = market || 'KRW-BTC';
+    start();
+  });
+
+  socket.on('disconnect', () => {
+    if (timer) clearInterval(timer);
+  });
 });
 
 // 404 핸들러
@@ -114,7 +145,7 @@ app.use('*', (req, res) => {
 });
 
 // 서버 시작
-const server = app.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server running on 0.0.0.0:${PORT}`);
 });
 
