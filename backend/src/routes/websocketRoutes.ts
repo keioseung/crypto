@@ -18,7 +18,7 @@ router.get('/status', apiRateLimiterMiddleware, async (_req: Request, res: Respo
     });
   } catch (error) {
     logger.error('Error checking WebSocket status:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: { message: 'Failed to check WebSocket status' }
     });
@@ -59,7 +59,7 @@ router.post('/url', apiRateLimiterMiddleware, async (req: Request, res: Response
     });
   } catch (error) {
     logger.error('Error generating WebSocket URL:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: { message: 'Failed to generate WebSocket URL' }
     });
@@ -97,7 +97,7 @@ router.post('/subscribe', apiRateLimiterMiddleware, async (req: Request, res: Re
     });
   } catch (error) {
     logger.error('Error creating subscription:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: { message: 'Failed to create subscription' }
     });
@@ -126,7 +126,7 @@ router.post('/unsubscribe', apiRateLimiterMiddleware, async (req: Request, res: 
     });
   } catch (error) {
     logger.error('Error unsubscribing:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: { message: 'Failed to unsubscribe' }
     });
@@ -157,7 +157,7 @@ router.get('/subscriptions', apiRateLimiterMiddleware, async (_req: Request, res
     });
   } catch (error) {
     logger.error('Error fetching subscriptions:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: { message: 'Failed to fetch subscriptions' }
     });

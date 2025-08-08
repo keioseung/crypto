@@ -175,9 +175,9 @@ export const setupWebSocket = (io: Server) => {
       const markets = upbitService.getSupportedMarkets();
       const tickers = await upbitService.getTickers(markets);
 
-      tickers.forEach(ticker => {
-        io.to(`market_${ticker.market}`).emit('market_update', {
-          market: ticker.market,
+      tickers.forEach((ticker: any) => {
+        io.to(`market_${ticker['market']}`).emit('market_update', {
+          market: ticker['market'],
           data: {
             price: ticker.trade_price,
             change: ticker.signed_change_rate,

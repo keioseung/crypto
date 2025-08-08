@@ -33,7 +33,7 @@ router.post('/indicators', apiRateLimiterMiddleware, async (req: Request, res: R
     });
   } catch (error) {
     logger.error('Error calculating technical indicators:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: { message: 'Failed to calculate technical indicators' }
     });
@@ -84,7 +84,7 @@ router.post('/patterns', apiRateLimiterMiddleware, async (req: Request, res: Res
     });
   } catch (error) {
     logger.error('Error analyzing patterns:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: { message: 'Failed to analyze patterns' }
     });
@@ -138,7 +138,7 @@ router.post('/support-resistance', apiRateLimiterMiddleware, async (req: Request
     });
   } catch (error) {
     logger.error('Error calculating support/resistance:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: { message: 'Failed to calculate support/resistance levels' }
     });
@@ -196,7 +196,7 @@ router.post('/volatility', apiRateLimiterMiddleware, async (req: Request, res: R
     });
   } catch (error) {
     logger.error('Error calculating volatility:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: { message: 'Failed to calculate volatility' }
     });
@@ -248,7 +248,7 @@ router.post('/momentum', apiRateLimiterMiddleware, async (req: Request, res: Res
     });
   } catch (error) {
     logger.error('Error calculating momentum:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: { message: 'Failed to calculate momentum indicators' }
     });
@@ -303,7 +303,7 @@ router.post('/volume-analysis', apiRateLimiterMiddleware, async (req: Request, r
     });
   } catch (error) {
     logger.error('Error analyzing volume:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: { message: 'Failed to analyze volume' }
     });

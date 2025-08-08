@@ -120,7 +120,7 @@ router.post('/technical-indicators', apiRateLimiterMiddleware, async (req: Reque
     });
   } catch (error) {
     logger.error('Error calculating technical indicators:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: { message: 'Failed to calculate technical indicators' }
     });
@@ -162,7 +162,7 @@ router.post('/multi-market', apiRateLimiterMiddleware, async (req: Request, res:
     });
   } catch (error) {
     logger.error('Error in multi-market prediction:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: { message: 'Failed to generate multi-market predictions' }
     });
@@ -197,7 +197,7 @@ router.get('/history/:market', apiRateLimiterMiddleware, async (req: Request, re
     });
   } catch (error) {
     logger.error(`Error fetching prediction history for ${req.params.market}:`, error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: { message: `Failed to fetch prediction history for ${req.params.market}` }
     });
