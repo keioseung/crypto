@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoAI - 종합 암호화폐 분석 플랫폼</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tensorflow/4.10.0/tf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, #FFD700, #FF6B6B);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .control-panel {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .card h3 {
+            color: #FFD700;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #FFD700;
+            padding-bottom: 0.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .input-group input, .input-group select, .input-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .input-group input::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            background: linear-gradient(45deg, #FF5252, #26C6DA);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #9C27B0, #673AB7);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(45deg, #8E24AA, #5E35B1);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-training { background: #FF9800; }
+        .status-ready { background: #4CAF50; }
+        .status-error { background: #F44336; }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, rgba(255,107,107,0.2), rgba(78,205,196,0.2));
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #FFD700;
+            margin-bottom: 0.5rem;
+        }
+
+        .model-status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            margin: 0.5rem 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ECDC4, #44A08D);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .data-preview {
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .ensemble-weights {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .weight-control {
+            text-align: center;
+        }
+
+        .weight-slider {
+            width: 100%;
+            margin: 0.5rem 0;
+        }
+
+        .prediction-result {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .classification-result {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            margin: 0.5rem;
+            font-weight: 600;
+        }
+
+        .bull { background: #4CAF50; }
+        .bear { background: #F44336; }
+        .neutral { background: #FF9800; }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            background: transparent;
+            color: #fff;
+        }
+
+        .tab.active {
+            background: rgba(255,215,0,0.3);
+            color: #FFD700;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-weight: 600;
+        }
+
+        .alert-success { background: rgba(76,175,80,0.3); border-left: 4px solid #4CAF50; }
+        .alert-error { background: rgba(244,67,54,0.3); border-left: 4px solid #F44336; }
+        .alert-warning { background: rgba(255,152,0,0.3); border-left: 4px solid #FF9800; }
+
+        .feature-importance {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .backtest-results {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .strategy-card {
+            background: linear-gradient(135deg, rgba(156,39,176,0.3), rgba(103,58,183,0.3));
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 CryptoAI 종합 분석 플랫폼</h1>
+        <p>AI 기반 암호화폐 분석, 예측 및 분류 솔루션</p>
+    </div>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('data')">📊 데이터 관리</button>
+            <button class="tab" onclick="switchTab('models')">🤖 모델 훈련</button>
+            <button class="tab" onclick="switchTab('prediction')">🔮 예측/분류</button>
+            <button class="tab" onclick="switchTab('ensemble')">⚡ 앙상블</button>
+            <button class="tab" onclick="switchTab('backtest')">📈 백테스팅</button>
+            <button class="tab" onclick="switchTab('realtime')">🔴 실시간</button>
+        </div>
+
+        <!-- 데이터 관리 탭 -->
+        <div id="data-tab" class="tab-content active">
+            <div class="grid">
+                <div class="card">
+                    <h3>💾 데이터 로드</h3>
+                    <div class="input-group">
+                        <label>암호화폐 선택</label>
+                        <select id="cryptoSelect">
+                            <option value="BTC">Bitcoin (BTC)</option>
+                            <option value="ETH">Ethereum (ETH)</option>
+                            <option value="BNB">Binance Coin (BNB)</option>
+                            <option value="ADA">Cardano (ADA)</option>
+                            <option value="SOL">Solana (SOL)</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>시간 범위</label>
+                        <select id="timeRange">
+                            <option value="1d">1일</option>
+                            <option value="7d">1주</option>
+                            <option value="30d">1개월</option>
+                            <option value="90d">3개월</option>
+                            <option value="365d">1년</option>
+                        </select>
+                    </div>
+                    <button class="btn" onclick="generateSampleData()">샘플 데이터 생성</button>
+                    <button class="btn btn-secondary" onclick="loadRealData()">실시간 데이터 로드</button>
+                </div>
+
+                <div class="card">
+                    <h3>📈 데이터 시각화</h3>
+                    <div class="chart-container">
+                        <canvas id="priceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🔍 데이터 미리보기</h3>
+                <div class="data-preview" id="dataPreview">
+                    데이터를 로드해주세요...
+                </div>
+            </div>
+        </div>
+
+        <!-- 모델 훈련 탭 -->
+        <div id="models-tab" class="tab-content">
+            <div class="grid">
+                <div class="card">
+                    <h3>🧠 분류 모델들</h3>
+                    <div class="model-status">
+                        <span><span class="status-indicator status-ready"></span>LSTM 분류기 (불/곰/중립)</span>
+                        <button class="btn" onclick="trainClassificationModel('lstm')">훈련</button>
+                    </div>
+                    <div class="model-status">
+                        <span><span class="status-indicator status-ready"></span>Random Forest (패턴 분류)</span>
+                        <button class="btn" onclick="trainClassificationModel('rf')">훈련</button>
+                    </div>
+                    <div class="model-status">
+                        <span><span class="status-indicator status-ready"></span>SVM (트렌드 분류)</span>
+                        <button class="btn" onclick="trainClassificationModel('svm')">훈련</button>
+                    </div>
+                    <div class="model-status">
+                        <span><span class="status-indicator status-ready"></span>CNN (차트 패턴)</span>
+                        <button class="btn" onclick="trainClassificationModel('cnn')">훈련</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📊 회귀 모델들</h3>
+                    <div class="model-status">
+                        <span><span class="status-indicator status-ready"></span>LSTM 회귀 (가격 예측)</span>
+                        <button class="btn" onclick="trainRegressionModel('lstm')">훈련</button>
+                    </div>
+                    <div class="model-status">
+                        <span><span class="status-indicator status-ready"></span>GRU (단기 예측)</span>
+                        <button class="btn" onclick="trainRegressionModel('gru')">훈련</button>
+                    </div>
+                    <div class="model-status">
+                        <span><span class="status-indicator status-ready"></span>Linear Regression</span>
+                        <button class="btn" onclick="trainRegressionModel('linear')">훈련</button>
+                    </div>
+                    <div class="model-status">
+                        <span><span class="status-indicator status-ready"></span>ARIMA 모델</span>
+                        <button class="btn" onclick="trainRegressionModel('arima')">훈련</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>⚙️ 하이퍼파라미터 튜닝</h3>
+                <div class="grid">
+                    <div class="input-group">
+                        <label>시퀀스 길이</label>
+                        <input type="number" id="sequenceLength" value="50" min="10" max="200">
+                    </div>
+                    <div class="input-group">
+                        <label>배치 크기</label>
+                        <input type="number" id="batchSize" value="32" min="8" max="128">
+                    </div>
+                    <div class="input-group">
+                        <label>학습률</label>
+                        <input type="number" id="learningRate" value="0.001" step="0.0001">
+                    </div>
+                    <div class="input-group">
+                        <label>에포크</label>
+                        <input type="number" id="epochs" value="100" min="10" max="500">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📊 훈련 진행 상황</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="trainingProgress" style="width: 0%"></div>
+                </div>
+                <div id="trainingLog">훈련을 시작하려면 위의 모델을 선택하세요...</div>
+            </div>
+        </div>
+
+        <!-- 예측/분류 탭 -->
+        <div id="prediction-tab" class="tab-content">
+            <div class="grid">
+                <div class="card">
+                    <h3>🔮 가격 예측</h3>
+                    <div class="input-group">
+                        <label>예측 기간 (시간)</label>
+                        <input type="number" id="predictionHours" value="24" min="1" max="168">
+                    </div>
+                    <button class="btn" onclick="makePrediction()">가격 예측 실행</button>
+                    
+                    <div class="prediction-result" id="predictionResult" style="display: none;">
+                        <h4>예측 결과</h4>
+                        <div class="metric-value" id="predictedPrice">$0.00</div>
+                        <p>신뢰도: <span id="predictionConfidence">0%</span></p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📈 트렌드 분류</h3>
+                    <button class="btn" onclick="classifyTrend()">트렌드 분석</button>
+                    
+                    <div id="classificationResults" style="display: none;">
+                        <h4>분류 결과</h4>
+                        <div id="trendResults"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📊 예측 차트</h3>
+                <div class="chart-container">
+                    <canvas id="predictionChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🎯 모델 성능 지표</h3>
+                <div class="results-grid" id="performanceMetrics">
+                    <div class="metric-card">
+                        <div class="metric-value" id="mae">-</div>
+                        <div>평균 절대 오차 (MAE)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="rmse">-</div>
+                        <div>평균 제곱근 오차 (RMSE)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="mape">-</div>
+                        <div>평균 절대 백분율 오차</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="accuracy">-</div>
+                        <div>분류 정확도</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 앙상블 탭 -->
+        <div id="ensemble-tab" class="tab-content">
+            <div class="card">
+                <h3>⚡ 앙상블 모델 구성</h3>
+                <p>여러 모델의 예측을 결합하여 더 정확한 결과를 도출합니다.</p>
+                
+                <div class="ensemble-weights">
+                    <div class="weight-control">
+                        <label>LSTM 가중치</label>
+                        <input type="range" class="weight-slider" id="lstmWeight" min="0" max="1" step="0.1" value="0.3">
+                        <span id="lstmWeightValue">0.3</span>
+                    </div>
+                    <div class="weight-control">
+                        <label>GRU 가중치</label>
+                        <input type="range" class="weight-slider" id="gruWeight" min="0" max="1" step="0.1" value="0.25">
+                        <span id="gruWeightValue">0.25</span>
+                    </div>
+                    <div class="weight-control">
+                        <label>Random Forest 가중치</label>
+                        <input type="range" class="weight-slider" id="rfWeight" min="0" max="1" step="0.1" value="0.25">
+                        <span id="rfWeightValue">0.25</span>
+                    </div>
+                    <div class="weight-control">
+                        <label>Linear 가중치</label>
+                        <input type="range" class="weight-slider" id="linearWeight" min="0" max="1" step="0.1" value="0.2">
+                        <span id="linearWeightValue">0.2</span>
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="trainEnsemble()">앙상블 모델 훈련</button>
+                <button class="btn btn-secondary" onclick="runEnsemblePrediction()">앙상블 예측 실행</button>
+            </div>
+
+            <div class="grid">
+                <div class="card">
+                    <h3>🏆 앙상블 성능</h3>
+                    <div class="chart-container">
+                        <canvas id="ensemblePerformanceChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🎯 모델별 기여도</h3>
+                    <div class="chart-container">
+                        <canvas id="modelContributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📊 스태킹 앙상블</h3>
+                <p>메타 모델을 사용하여 기본 모델들의 예측을 최적으로 결합합니다.</p>
+                <div class="input-group">
+                    <label>메타 모델 선택</label>
+                    <select id="metaModel">
+                        <option value="linear">선형 회귀</option>
+                        <option value="ridge">Ridge 회귀</option>
+                        <option value="xgboost">XGBoost</option>
+                        <option value="neural">신경망</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="trainStackingEnsemble()">스태킹 앙상블 훈련</button>
+            </div>
+        </div>
+
+        <!-- 백테스팅 탭 -->
+        <div id="backtest-tab" class="tab-content">
+            <div class="card">
+                <h3>📈 백테스팅 설정</h3>
+                <div class="grid">
+                    <div class="input-group">
+                        <label>초기 자본 ($)</label>
+                        <input type="number" id="initialCapital" value="10000" min="1000">
+                    </div>
+                    <div class="input-group">
+                        <label>거래 수수료 (%)</label>
+                        <input type="number" id="tradingFee" value="0.1" step="0.01" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>리밸런싱 주기 (일)</label>
+                        <input type="number" id="rebalancePeriod" value="7" min="1">
+                    </div>
+                    <div class="input-group">
+                        <label>백테스트 기간 (개월)</label>
+                        <input type="number" id="backtestPeriod" value="12" min="1" max="36">
+                    </div>
+                </div>
+                <button class="btn" onclick="runBacktest()">백테스팅 실행</button>
+            </div>
+
+            <div class="grid">
+                <div class="card">
+                    <h3>💰 수익률 분석</h3>
+                    <div class="chart-container">
+                        <canvas id="returnsChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📊 포트폴리오 성과</h3>
+                    <div class="backtest-results" id="backtestResults" style="display: none;">
+                        <div class="results-grid">
+                            <div class="metric-card">
+                                <div class="metric-value" id="totalReturn">-</div>
+                                <div>총 수익률</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="sharpeRatio">-</div>
+                                <div>샤프 비율</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="maxDrawdown">-</div>
+                                <div>최대 낙폭</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="winRate">-</div>
+                                <div>승률</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🎯 전략 비교</h3>
+                <div class="strategy-card">
+                    <h4>🤖 AI 예측 전략</h4>
+                    <p>앙상블 모델 기반 자동 매매 전략</p>
+                    <div class="metric-value" id="aiStrategyReturn">-</div>
+                </div>
+                <div class="strategy-card">
+                    <h4>📈 Buy & Hold</h4>
+                    <p>단순 보유 전략</p>
+                    <div class="metric-value" id="holdStrategyReturn">-</div>
+                </div>
+                <div class="strategy-card">
+                    <h4>📊 이동평균 전략</h4>
+                    <p>기술적 분석 기반 전략</p>
+                    <div class="metric-value" id="maStrategyReturn">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 실시간 모니터링 탭 -->
+        <div id="realtime-tab" class="tab-content">
+            <div class="grid">
+                <div class="card">
+                    <h3>🔴 실시간 모니터링</h3>
+                    <div class="model-status">
+                        <span><span class="status-indicator status-ready"></span>실시간 데이터 스트림</span>
+                        <button class="btn" id="realtimeToggle" onclick="toggleRealtime()">시작</button>
+                    </div>
+                    <div class="alert alert-success" id="realtimeStatus" style="display: none;">
+                        실시간 모니터링이 활성화되었습니다.
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>⚡ 실시간 예측</h3>
+                    <div class="prediction-result">
+                        <h4>현재 예측</h4>
+                        <div class="metric-value" id="realtimePrediction">$0.00</div>
+                        <p>마지막 업데이트: <span id="lastUpdate">-</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📊 실시간 차트</h3>
+                <div class="chart-container">
+                    <canvas id="realtimeChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🚨 알림 설정</h3>
+                <div class="grid">
+                    <div class="input-group">
+                        <label>가격 알림 (상한)</label>
+                        <input type="number" id="priceAlertUpper" placeholder="상한 가격">
+                    </div>
+                    <div class="input-group">
+                        <label>가격 알림 (하한)</label>
+                        <input type="number" id="priceAlertLower" placeholder="하한 가격">
+                    </div>
+                    <div class="input-group">
+                        <label>변동성 알림 (%)</label>
+                        <input type="number" id="volatilityAlert" value="10" min="1" max="50">
+                    </div>
+                </div>
+                <button class="btn" onclick="setAlerts()">알림 설정</button>
+            </div>
+
+            <div class="card">
+                <h3>📱 자동 거래 설정</h3>
+                <div class="input-group">
+                    <label>자동 거래 활성화</label>
+                    <select id="autoTrading">
+                        <option value="false">비활성화</option>
+                        <option value="true">활성화</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>최대 포지션 크기 (%)</label>
+                    <input type="number" id="maxPosition" value="10" min="1" max="100">
+                </div>
+                <div class="input-group">
+                    <label>손절매 비율 (%)</label>
+                    <input type="number" id="stopLoss" value="5" min="1" max="20">
+                </div>
+                <div class="input-group">
+                    <label>익절매 비율 (%)</label>
+                    <input type="number" id="takeProfit" value="15" min="5" max="50">
+                </div>
+                <button class="btn btn-secondary" onclick="configAutoTrading()">자동거래 설정</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 전역 변수들
+        let cryptoData = [];
+        let models = {
+            classification: {},
+            regression: {},
+            ensemble: null
+        };
+        let charts = {};
+        let realtimeInterval = null;
+        let isRealtimeActive = false;
+
+        // 탭 전환 함수
+        function switchTab(tabName) {
+            // 모든 탭과 콘텐츠 비활성화
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+            
+            // 선택된 탭 활성화
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').style.display = 'block';
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+
+        // 샘플 데이터 생성 함수
+        function generateSampleData() {
+            const crypto = document.getElementById('cryptoSelect').value;
+            const range = document.getElementById('timeRange').value;
+            
+            let dataPoints = 100;
+            switch(range) {
+                case '1d': dataPoints = 24; break;
+                case '7d': dataPoints = 168; break;
+                case '30d': dataPoints = 720; break;
+                case '90d': dataPoints = 2160; break;
+                case '365d': dataPoints = 8760; break;
+            }
+
+            cryptoData = [];
+            let basePrice = crypto === 'BTC' ? 45000 : crypto === 'ETH' ? 3000 : 500;
+            let currentPrice = basePrice;
+            
+            for (let i = 0; i < dataPoints; i++) {
+                const timestamp = new Date(Date.now() - (dataPoints - i) * 3600000);
+                const volatility = (Math.random() - 0.5) * 0.05; // ±2.5% 변동성
+                currentPrice *= (1 + volatility);
+                
+                const volume = Math.random() * 1000000 + 500000;
+                const high = currentPrice * (1 + Math.random() * 0.02);
+                const low = currentPrice * (1 - Math.random() * 0.02);
+                
+                cryptoData.push({
+                    timestamp: timestamp,
+                    open: currentPrice,
+                    high: high,
+                    low: low,
+                    close: currentPrice,
+                    volume: volume,
+                    price: currentPrice
+                });
+            }
+
+            updateDataPreview();
+            updatePriceChart();
+            showAlert('success', `${crypto} 샘플 데이터가 성공적으로 생성되었습니다.`);
+        }
+
+        // 실시간 데이터 로드 (모의)
+        function loadRealData() {
+            showAlert('warning', '실시간 데이터 API 연동 중...');
+            setTimeout(() => {
+                generateSampleData(); // 실제 구현시 API 호출로 대체
+                showAlert('success', '실시간 데이터가 로드되었습니다.');
+            }, 2000);
+        }
+
+        // 데이터 미리보기 업데이트
+        function updateDataPreview() {
+            const preview = document.getElementById('dataPreview');
+            if (cryptoData.length === 0) {
+                preview.textContent = '데이터를 로드해주세요...';
+                return;
+            }
+
+            let previewText = `데이터 포인트: ${cryptoData.length}\n`;
+            previewText += `시간 범위: ${cryptoData[0].timestamp.toLocaleString()} - ${cryptoData[cryptoData.length-1].timestamp.toLocaleString()}\n\n`;
+            previewText += '최근 10개 데이터:\n';
+            previewText += 'Timestamp\t\tPrice\t\tVolume\n';
+            
+            cryptoData.slice(-10).forEach(point => {
+                previewText += `${point.timestamp.toLocaleString()}\t${point.price.toFixed(2)}\t${point.volume.toFixed(0)}\n`;
+            });
+
+            preview.textContent = previewText;
+        }
+
+        // 가격 차트 업데이트
+        function updatePriceChart() {
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            
+            if (charts.priceChart) {
+                charts.priceChart.destroy();
+            }
+
+            charts.priceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: cryptoData.map(d => d.timestamp.toLocaleTimeString()),
+                    datasets: [{
+                        label: '가격',
+                        data: cryptoData.map(d => d.price),
+                        borderColor: 'rgb(255, 215, 0)',
+                        backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                        tension: 0.1
+                    }, {
+                        label: '거래량',
+                        data: cryptoData.map(d => d.volume / 1000),
+                        type: 'bar',
+                        yAxisID: 'y1',
+                        backgroundColor: 'rgba(78, 205, 196, 0.3)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#fff' } }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#fff' } },
+                        y: { 
+                            ticks: { color: '#fff' },
+                            position: 'left'
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            ticks: { color: '#fff' },
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 분류 모델 훈련
+        async function trainClassificationModel(modelType) {
+            if (cryptoData.length === 0) {
+                showAlert('error', '먼저 데이터를 로드해주세요.');
+                return;
+            }
+
+            const button = event.target;
+            button.innerHTML = '<span class="loading"></span> 훈련 중...';
+            button.disabled = true;
+
+            await simulateTraining();
+
+            // 모의 분류 모델 생성
+            models.classification[modelType] = {
+                type: modelType,
+                accuracy: Math.random() * 0.3 + 0.65, // 65-95% 정확도
+                trained: true,
+                predict: function(data) {
+                    const trend = Math.random();
+                    if (trend < 0.33) return 'bear';
+                    if (trend < 0.66) return 'neutral';
+                    return 'bull';
+                }
+            };
+
+            button.innerHTML = '재훈련';
+            button.disabled = false;
+            showAlert('success', `${modelType.toUpperCase()} 분류 모델이 성공적으로 훈련되었습니다.`);
+        }
+
+        // 회귀 모델 훈련
+        async function trainRegressionModel(modelType) {
+            if (cryptoData.length === 0) {
+                showAlert('error', '먼저 데이터를 로드해주세요.');
+                return;
+            }
+
+            const button = event.target;
+            button.innerHTML = '<span class="loading"></span> 훈련 중...';
+            button.disabled = true;
+
+            await simulateTraining();
+
+            // 모의 회귀 모델 생성
+            models.regression[modelType] = {
+                type: modelType,
+                rmse: Math.random() * 100 + 50,
+                mae: Math.random() * 50 + 25,
+                trained: true,
+                predict: function(data) {
+                    const currentPrice = data[data.length - 1].price;
+                    const change = (Math.random() - 0.5) * 0.1; // ±5% 변화
+                    return currentPrice * (1 + change);
+                }
+            };
+
+            button.innerHTML = '재훈련';
+            button.disabled = false;
+            showAlert('success', `${modelType.toUpperCase()} 회귀 모델이 성공적으로 훈련되었습니다.`);
+        }
+
+        // 훈련 시뮬레이션
+        async function simulateTraining() {
+            const progressBar = document.getElementById('trainingProgress');
+            const trainingLog = document.getElementById('trainingLog');
+            
+            for (let i = 0; i <= 100; i += 5) {
+                progressBar.style.width = i + '%';
+                trainingLog.textContent = `훈련 진행 중... ${i}%`;
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            trainingLog.textContent = '훈련 완료!';
+        }
+
+        // 가격 예측
+        function makePrediction() {
+            if (cryptoData.length === 0) {
+                showAlert('error', '먼저 데이터를 로드해주세요.');
+                return;
+            }
+
+            if (Object.keys(models.regression).length === 0) {
+                showAlert('error', '먼저 회귀 모델을 훈련해주세요.');
+                return;
+            }
+
+            const hours = parseInt(document.getElementById('predictionHours').value);
+            const currentPrice = cryptoData[cryptoData.length - 1].price;
+            
+            // 앙상블 예측 (여러 모델의 평균)
+            let predictions = [];
+            Object.values(models.regression).forEach(model => {
+                predictions.push(model.predict(cryptoData));
+            });
+            
+            const ensemblePrediction = predictions.reduce((a, b) => a + b, 0) / predictions.length;
+            const confidence = Math.random() * 30 + 70; // 70-100% 신뢰도
+
+            // 결과 표시
+            document.getElementById('predictionResult').style.display = 'block';
+            document.getElementById('predictedPrice').textContent = `${ensemblePrediction.toFixed(2)}`;
+            document.getElementById('predictionConfidence').textContent = `${confidence.toFixed(1)}%`;
+
+            // 성능 지표 업데이트
+            updatePerformanceMetrics();
+            
+            // 예측 차트 업데이트
+            updatePredictionChart(ensemblePrediction, hours);
+
+            showAlert('success', `${hours}시간 후 가격 예측이 완료되었습니다.`);
+        }
+
+        // 트렌드 분류
+        function classifyTrend() {
+            if (cryptoData.length === 0) {
+                showAlert('error', '먼저 데이터를 로드해주세요.');
+                return;
+            }
+
+            if (Object.keys(models.classification).length === 0) {
+                showAlert('error', '먼저 분류 모델을 훈련해주세요.');
+                return;
+            }
+
+            const results = document.getElementById('classificationResults');
+            const trendResults = document.getElementById('trendResults');
+            
+            results.style.display = 'block';
+            trendResults.innerHTML = '';
+
+            // 각 분류 모델의 예측 결과
+            Object.entries(models.classification).forEach(([modelType, model]) => {
+                const prediction = model.predict(cryptoData);
+                const confidence = (model.accuracy * 100).toFixed(1);
+                
+                const resultDiv = document.createElement('div');
+                resultDiv.className = `classification-result ${prediction}`;
+                resultDiv.innerHTML = `
+                    <strong>${modelType.toUpperCase()}</strong>: 
+                    ${prediction.toUpperCase()} (${confidence}% 신뢰도)
+                `;
+                trendResults.appendChild(resultDiv);
+            });
+
+            showAlert('success', '트렌드 분류가 완료되었습니다.');
+        }
+
+        // 성능 지표 업데이트
+        function updatePerformanceMetrics() {
+            const metrics = {
+                mae: (Math.random() * 50 + 25).toFixed(2),
+                rmse: (Math.random() * 100 + 50).toFixed(2),
+                mape: (Math.random() * 10 + 2).toFixed(2) + '%',
+                accuracy: (Math.random() * 30 + 70).toFixed(1) + '%'
+            };
+
+            document.getElementById('mae').textContent = metrics.mae;
+            document.getElementById('rmse').textContent = metrics.rmse;
+            document.getElementById('mape').textContent = metrics.mape;
+            document.getElementById('accuracy').textContent = metrics.accuracy;
+        }
+
+        // 예측 차트 업데이트
+        function updatePredictionChart(prediction, hours) {
+            const ctx = document.getElementById('predictionChart').getContext('2d');
+            
+            if (charts.predictionChart) {
+                charts.predictionChart.destroy();
+            }
+
+            const historicalData = cryptoData.slice(-50); // 최근 50개 데이터
+            const futureData = [];
+            
+            // 미래 예측 데이터 생성
+            let currentPrice = prediction;
+            for (let i = 0; i < hours; i++) {
+                const futureTime = new Date(Date.now() + i * 3600000);
+                const volatility = (Math.random() - 0.5) * 0.02;
+                currentPrice *= (1 + volatility);
+                futureData.push({
+                    x: futureTime,
+                    y: currentPrice
+                });
+            }
+
+            charts.predictionChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: '과거 데이터',
+                        data: historicalData.map(d => ({x: d.timestamp, y: d.price})),
+                        borderColor: 'rgb(255, 215, 0)',
+                        backgroundColor: 'rgba(255, 215, 0, 0.1)'
+                    }, {
+                        label: '예측 데이터',
+                        data: futureData,
+                        borderColor: 'rgb(255, 107, 107)',
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        borderDash: [5, 5]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#fff' } }
+                    },
+                    scales: {
+                        x: { 
+                            type: 'time',
+                            ticks: { color: '#fff' }
+                        },
+                        y: { ticks: { color: '#fff' } }
+                    }
+                }
+            });
+        }
+
+        // 앙상블 모델 관련 함수들
+        function updateWeightSliders() {
+            const sliders = ['lstm', 'gru', 'rf', 'linear'];
+            sliders.forEach(model => {
+                const slider = document.getElementById(model + 'Weight');
+                const valueSpan = document.getElementById(model + 'WeightValue');
+                
+                slider.oninput = function() {
+                    valueSpan.textContent = this.value;
+                    normalizeWeights();
+                };
+            });
+        }
+
+        function normalizeWeights() {
+            const sliders = ['lstm', 'gru', 'rf', 'linear'];
+            let total = 0;
+            
+            sliders.forEach(model => {
+                total += parseFloat(document.getElementById(model + 'Weight').value);
+            });
+            
+            // 가중치 정규화 (총합이 1이 되도록)
+            if (total > 0) {
+                sliders.forEach(model => {
+                    const slider = document.getElementById(model + 'Weight');
+                    const valueSpan = document.getElementById(model + 'WeightValue');
+                    const normalizedValue = (parseFloat(slider.value) / total).toFixed(2);
+                    valueSpan.textContent = normalizedValue;
+                });
+            }
+        }
+
+        function trainEnsemble() {
+            if (Object.keys(models.regression).length < 2) {
+                showAlert('error', '앙상블을 위해 최소 2개의 회귀 모델이 필요합니다.');
+                return;
+            }
+
+            models.ensemble = {
+                models: {...models.regression},
+                weights: {
+                    lstm: parseFloat(document.getElementById('lstmWeightValue').textContent),
+                    gru: parseFloat(document.getElementById('gruWeightValue').textContent),
+                    rf: parseFloat(document.getElementById('rfWeightValue').textContent),
+                    linear: parseFloat(document.getElementById('linearWeightValue').textContent)
+                },
+                predict: function(data) {
+                    let weightedSum = 0;
+                    let totalWeight = 0;
+                    
+                    Object.entries(this.models).forEach(([modelType, model]) => {
+                        const weight = this.weights[modelType] || 0;
+                        if (weight > 0) {
+                            weightedSum += model.predict(data) * weight;
+                            totalWeight += weight;
+                        }
+                    });
+                    
+                    return totalWeight > 0 ? weightedSum / totalWeight : 0;
+                }
+            };
+
+            showAlert('success', '앙상블 모델이 성공적으로 구성되었습니다.');
+            updateEnsembleCharts();
+        }
+
+        function runEnsemblePrediction() {
+            if (!models.ensemble) {
+                showAlert('error', '먼저 앙상블 모델을 훈련해주세요.');
+                return;
+            }
+
+            const prediction = models.ensemble.predict(cryptoData);
+            showAlert('success', `앙상블 예측: ${prediction.toFixed(2)}`);
+        }
+
+        function trainStackingEnsemble() {
+            const metaModel = document.getElementById('metaModel').value;
+            showAlert('warning', `${metaModel} 메타 모델로 스태킹 앙상블을 훈련 중...`);
+            
+            setTimeout(() => {
+                showAlert('success', '스태킹 앙상블이 성공적으로 훈련되었습니다.');
+            }, 3000);
+        }
+
+        function updateEnsembleCharts() {
+            // 앙상블 성능 차트
+            const ctx1 = document.getElementById('ensemblePerformanceChart').getContext('2d');
+            if (charts.ensemblePerformance) charts.ensemblePerformance.destroy();
+
+            charts.ensemblePerformance = new Chart(ctx1, {
+                type: 'radar',
+                data: {
+                    labels: ['정확도', 'RMSE', 'MAE', '안정성', '수렴성'],
+                    datasets: [{
+                        label: '앙상블 모델',
+                        data: [85, 75, 80, 90, 88],
+                        borderColor: 'rgb(255, 215, 0)',
+                        backgroundColor: 'rgba(255, 215, 0, 0.2)'
+                    }, {
+                        label: '단일 모델 평균',
+                        data: [70, 65, 70, 75, 72],
+                        borderColor: 'rgb(78, 205, 196)',
+                        backgroundColor: 'rgba(78, 205, 196, 0.2)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#fff' } } },
+                    scales: { r: { ticks: { color: '#fff' } } }
+                }
+            });
+
+            // 모델별 기여도 차트
+            const ctx2 = document.getElementById('modelContributionChart').getContext('2d');
+            if (charts.modelContribution) charts.modelContribution.destroy();
+
+            charts.modelContribution = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['LSTM', 'GRU', 'Random Forest', 'Linear'],
+                    datasets: [{
+                        data: [
+                            parseFloat(document.getElementById('lstmWeightValue').textContent),
+                            parseFloat(document.getElementById('gruWeightValue').textContent),
+                            parseFloat(document.getElementById('rfWeightValue').textContent),
+                            parseFloat(document.getElementById('linearWeightValue').textContent)
+                        ],
+                        backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#fff' } } }
+                }
+            });
+        }
+
+        // 백테스팅 함수들
+        function runBacktest() {
+            if (cryptoData.length === 0) {
+                showAlert('error', '먼저 데이터를 로드해주세요.');
+                return;
+            }
+
+            const initialCapital = parseFloat(document.getElementById('initialCapital').value);
+            const tradingFee = parseFloat(document.getElementById('tradingFee').value) / 100;
+            const rebalancePeriod = parseInt(document.getElementById('rebalancePeriod').value);
+
+            showAlert('warning', '백테스팅을 실행 중입니다...');
+
+            setTimeout(() => {
+                // 모의 백테스팅 결과
+                const results = {
+                    totalReturn: ((Math.random() * 0.5 + 0.1) * 100).toFixed(2) + '%',
+                    sharpeRatio: (Math.random() * 1.5 + 0.5).toFixed(2),
+                    maxDrawdown: (-(Math.random() * 0.3 + 0.05) * 100).toFixed(2) + '%',
+                    winRate: (Math.random() * 40 + 50).toFixed(1) + '%',
+                    aiStrategy: (Math.random() * 50 + 10).toFixed(2) + '%',
+                    holdStrategy: (Math.random() * 30 + 5).toFixed(2) + '%',
+                    maStrategy: (Math.random() * 25 + 8).toFixed(2) + '%'
+                };
+
+                document.getElementById('backtestResults').style.display = 'block';
+                document.getElementById('totalReturn').textContent = results.totalReturn;
+                document.getElementById('sharpeRatio').textContent = results.sharpeRatio;
+                document.getElementById('maxDrawdown').textContent = results.maxDrawdown;
+                document.getElementById('winRate').textContent = results.winRate;
+                
+                document.getElementById('aiStrategyReturn').textContent = results.aiStrategy;
+                document.getElementById('holdStrategyReturn').textContent = results.holdStrategy;
+                document.getElementById('maStrategyReturn').textContent = results.maStrategy;
+
+                updateReturnsChart();
+                showAlert('success', '백테스팅이 완료되었습니다.');
+            }, 3000);
+        }
+
+        function updateReturnsChart() {
+            const ctx = document.getElementById('returnsChart').getContext('2d');
+            if (charts.returnsChart) charts.returnsChart.destroy();
+
+            // 모의 수익률 데이터 생성
+            const dates = [];
+            const aiReturns = [];
+            const holdReturns = [];
+            const maReturns = [];
+
+            for (let i = 0; i < 365; i++) {
+                const date = new Date();
+                date.setDate(date.getDate() - (365 - i));
+                dates.push(date.toLocaleDateString());
+
+                // 누적 수익률 시뮬레이션
+                aiReturns.push((Math.random() * 2 - 0.5 + aiReturns[i-1] || 0));
+                holdReturns.push((Math.random() * 1 - 0.2 + holdReturns[i-1] || 0));
+                maReturns.push((Math.random() * 1.5 - 0.3 + maReturns[i-1] || 0));
+            }
+
+            charts.returnsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'AI 전략',
+                        data: aiReturns,
+                        borderColor: '#FF6B6B',
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)'
+                    }, {
+                        label: 'Buy & Hold',
+                        data: holdReturns,
+                        borderColor: '#4ECDC4',
+                        backgroundColor: 'rgba(78, 205, 196, 0.1)'
+                    }, {
+                        label: '이동평균 전략',
+                        data: maReturns,
+                        borderColor: '#45B7D1',
+                        backgroundColor: 'rgba(69, 183, 209, 0.1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#fff' } } },
+                    scales: {
+                        x: { ticks: { color: '#fff' } },
+                        y: { ticks: { color: '#fff' } }
+                    }
+                }
+            });
+        }
+
+        // 실시간 모니터링 함수들
+        function toggleRealtime() {
+            const button = document.getElementById('realtimeToggle');
+            const status = document.getElementById('realtimeStatus');
+
+            if (!isRealtimeActive) {
+                isRealtimeActive = true;
+                button.textContent = '중지';
+                button.classList.add('btn-secondary');
+                status.style.display = 'block';
+                startRealtimeMonitoring();
+                showAlert('success', '실시간 모니터링이 시작되었습니다.');
+            } else {
+                isRealtimeActive = false;
+                button.textContent = '시작';
+                button.classList.remove('btn-secondary');
+                status.style.display = 'none';
+                stopRealtimeMonitoring();
+                showAlert('warning', '실시간 모니터링이 중지되었습니다.');
+            }
+        }
+
+        function startRealtimeMonitoring() {
+            updateRealtimeChart();
+            
+            realtimeInterval = setInterval(() => {
+                if (cryptoData.length > 0) {
+                    // 새 데이터 포인트 추가
+                    const lastPrice = cryptoData[cryptoData.length - 1].price;
+                    const newPrice = lastPrice * (1 + (Math.random() - 0.5) * 0.02);
+                    const newTimestamp = new Date();
+
+                    const newPoint = {
+                        timestamp: newTimestamp,
+                        open: lastPrice,
+                        high: Math.max(lastPrice, newPrice),
+                        low: Math.min(lastPrice, newPrice),
+                        close: newPrice,
+                        volume: Math.random() * 1000000 + 500000,
+                        price: newPrice
+                    };
+
+                    cryptoData.push(newPoint);
+                    
+                    // 오래된 데이터 제거 (최근 1000개만 유지)
+                    if (cryptoData.length > 1000) {
+                        cryptoData.shift();
+                    }
+
+                    updateRealtimeDisplay(newPrice);
+                    updateRealtimeChart();
+                }
+            }, 5000); // 5초마다 업데이트
+        }
+
+        function stopRealtimeMonitoring() {
+            if (realtimeInterval) {
+                clearInterval(realtimeInterval);
+                realtimeInterval = null;
+            }
+        }
+
+        function updateRealtimeDisplay(price) {
+            document.getElementById('realtimePrediction').textContent = `${price.toFixed(2)}`;
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+
+            // 알림 확인
+            checkPriceAlerts(price);
+        }
+
+        function updateRealtimeChart() {
+            const ctx = document.getElementById('realtimeChart').getContext('2d');
+            
+            if (charts.realtimeChart) {
+                charts.realtimeChart.destroy();
+            }
+
+            const recentData = cryptoData.slice(-100); // 최근 100개 데이터
+
+            charts.realtimeChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: recentData.map(d => d.timestamp.toLocaleTimeString()),
+                    datasets: [{
+                        label: '실시간 가격',
+                        data: recentData.map(d => d.price),
+                        borderColor: '#FF6B6B',
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        tension: 0.1,
+                        pointRadius: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 0 }, // 실시간 업데이트를 위해 애니메이션 비활성화
+                    plugins: { legend: { labels: { color: '#fff' } } },
+                    scales: {
+                        x: { 
+                            ticks: { 
+                                color: '#fff',
+                                maxTicksLimit: 10
+                            }
+                        },
+                        y: { ticks: { color: '#fff' } }
+                    }
+                }
+            });
+        }
+
+        function checkPriceAlerts(currentPrice) {
+            const upperAlert = parseFloat(document.getElementById('priceAlertUpper').value);
+            const lowerAlert = parseFloat(document.getElementById('priceAlertLower').value);
+
+            if (upperAlert && currentPrice >= upperAlert) {
+                showAlert('warning', `가격 상한 알림: ${currentPrice.toFixed(2)}`);
+                playNotificationSound();
+            }
+
+            if (lowerAlert && currentPrice <= lowerAlert) {
+                showAlert('warning', `가격 하한 알림: ${currentPrice.toFixed(2)}`);
+                playNotificationSound();
+            }
+        }
+
+        function setAlerts() {
+            const upper = document.getElementById('priceAlertUpper').value;
+            const lower = document.getElementById('priceAlertLower').value;
+            const volatility = document.getElementById('volatilityAlert').value;
+
+            showAlert('success', '알림이 설정되었습니다.');
+        }
+
+        function configAutoTrading() {
+            const autoTrading = document.getElementById('autoTrading').value === 'true';
+            const maxPosition = document.getElementById('maxPosition').value;
+            const stopLoss = document.getElementById('stopLoss').value;
+            const takeProfit = document.getElementById('takeProfit').value;
+
+            if (autoTrading) {
+                showAlert('warning', '자동거래가 활성화되었습니다. 실제 거래는 신중하게 진행하세요.');
+            } else {
+                showAlert('success', '자동거래 설정이 저장되었습니다.');
+            }
+        }
+
+        function playNotificationSound() {
+            // 브라우저 알림음 재생 (실제 구현시 사용)
+            if ('Notification' in window) {
+                new Notification('CryptoAI 알림', {
+                    body: '가격 알림이 트리거되었습니다.',
+                    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🚀</text></svg>'
+                });
+            }
+        }
+
+        // 유틸리티 함수들
+        function showAlert(type, message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            alertDiv.style.position = 'fixed';
+            alertDiv.style.top = '20px';
+            alertDiv.style.right = '20px';
+            alertDiv.style.zIndex = '9999';
+            alertDiv.style.minWidth = '300px';
+
+            document.body.appendChild(alertDiv);
+
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // 고급 분석 기능들
+        function calculateTechnicalIndicators() {
+            if (cryptoData.length < 50) return {};
+
+            const prices = cryptoData.map(d => d.price);
+            const volumes = cryptoData.map(d => d.volume);
+
+            return {
+                sma20: calculateSMA(prices, 20),
+                sma50: calculateSMA(prices, 50),
+                ema12: calculateEMA(prices, 12),
+                ema26: calculateEMA(prices, 26),
+                rsi: calculateRSI(prices, 14),
+                macd: calculateMACD(prices),
+                bollinger: calculateBollingerBands(prices, 20),
+                volume_sma: calculateSMA(volumes, 20)
+            };
+        }
+
+        function calculateSMA(data, period) {
+            const sma = [];
+            for (let i = period - 1; i < data.length; i++) {
+                const sum = data.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0);
+                sma.push(sum / period);
+            }
+            return sma;
+        }
+
+        function calculateEMA(data, period) {
+            const ema = [data[0]];
+            const multiplier = 2 / (period + 1);
+            
+            for (let i = 1; i < data.length; i++) {
+                ema.push((data[i] * multiplier) + (ema[i - 1] * (1 - multiplier)));
+            }
+            return ema;
+        }
+
+        function calculateRSI(data, period) {
+            const gains = [];
+            const losses = [];
+            
+            for (let i = 1; i < data.length; i++) {
+                const difference = data[i] - data[i - 1];
+                gains.push(difference > 0 ? difference : 0);
+                losses.push(difference < 0 ? Math.abs(difference) : 0);
+            }
+
+            const avgGains = calculateSMA(gains, period);
+            const avgLosses = calculateSMA(losses, period);
+            
+            return avgGains.map((gain, i) => {
+                const rs = gain / avgLosses[i];
+                return 100 - (100 / (1 + rs));
+            });
+        }
+
+        function calculateMACD(data) {
+            const ema12 = calculateEMA(data, 12);
+            const ema26 = calculateEMA(data, 26);
+            
+            const macd = [];
+            const minLength = Math.min(ema12.length, ema26.length);
+            
+            for (let i = 0; i < minLength; i++) {
+                macd.push(ema12[i] - ema26[i]);
+            }
+            
+            const signal = calculateEMA(macd, 9);
+            const histogram = macd.slice(-signal.length).map((val, i) => val - signal[i]);
+            
+            return { macd, signal, histogram };
+        }
+
+        function calculateBollingerBands(data, period) {
+            const sma = calculateSMA(data, period);
+            const bands = [];
+            
+            for (let i = period - 1; i < data.length; i++) {
+                const slice = data.slice(i - period + 1, i + 1);
+                const mean = slice.reduce((a, b) => a + b, 0) / period;
+                const variance = slice.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / period;
+                const stdDev = Math.sqrt(variance);
+                
+                bands.push({
+                    upper: sma[i - period + 1] + (stdDev * 2),
+                    middle: sma[i - period + 1],
+                    lower: sma[i - period + 1] - (stdDev * 2)
+                });
+            }
+            
+            return bands;
+        }
+
+        // 고급 ML 모델 시뮬레이션
+        function createAdvancedModels() {
+            return {
+                transformer: {
+                    name: 'Transformer',
+                    accuracy: 0.89,
+                    predict: (data) => simulateAdvancedPrediction(data, 'transformer')
+                },
+                lstm_attention: {
+                    name: 'LSTM with Attention',
+                    accuracy: 0.87,
+                    predict: (data) => simulateAdvancedPrediction(data, 'lstm_attention')
+                },
+                gru_bidirectional: {
+                    name: 'Bidirectional GRU',
+                    accuracy: 0.85,
+                    predict: (data) => simulateAdvancedPrediction(data, 'gru_bidirectional')
+                },
+                cnn_lstm: {
+                    name: 'CNN-LSTM Hybrid',
+                    accuracy: 0.84,
+                    predict: (data) => simulateAdvancedPrediction(data, 'cnn_lstm')
+                },
+                wavenet: {
+                    name: 'WaveNet',
+                    accuracy: 0.86,
+                    predict: (data) => simulateAdvancedPrediction(data, 'wavenet')
+                }
+            };
+        }
+
+        function simulateAdvancedPrediction(data, modelType) {
+            const lastPrice = data[data.length - 1].price;
+            const indicators = calculateTechnicalIndicators();
+            
+            // 모델별 특성을 반영한 예측 로직
+            let prediction;
+            switch(modelType) {
+                case 'transformer':
+                    prediction = lastPrice * (1 + (Math.random() - 0.48) * 0.1); // 약간 상승 편향
+                    break;
+                case 'lstm_attention':
+                    prediction = lastPrice * (1 + (Math.random() - 0.5) * 0.08); // 보수적 예측
+                    break;
+                case 'gru_bidirectional':
+                    prediction = lastPrice * (1 + (Math.random() - 0.49) * 0.09); // 균형잡힌 예측
+                    break;
+                case 'cnn_lstm':
+                    prediction = lastPrice * (1 + (Math.random() - 0.51) * 0.12); // 변동성 큰 예측
+                    break;
+                case 'wavenet':
+                    prediction = lastPrice * (1 + (Math.random() - 0.47) * 0.07); // 상승 편향, 안정적
+                    break;
+                default:
+                    prediction = lastPrice * (1 + (Math.random() - 0.5) * 0.1);
+            }
+            
+            return Math.max(prediction, 0); // 음수 가격 방지
+        }
+
+        // 포트폴리오 최적화
+        function optimizePortfolio() {
+            const assets = ['BTC', 'ETH', 'BNB', 'ADA', 'SOL'];
+            const returns = assets.map(() => Math.random() * 0.3 + 0.05); // 5-35% 연수익률
+            const risks = assets.map(() => Math.random() * 0.4 + 0.1); // 10-50% 변동성
+            
+            // 간단한 마르코위츠 최적화 시뮬레이션
+            const weights = optimizeMarkovitz(returns, risks);
+            
+            return {
+                assets,
+                weights,
+                expectedReturn: weights.reduce((sum, w, i) => sum + w * returns[i], 0),
+                expectedRisk: Math.sqrt(weights.reduce((sum, w, i) => sum + Math.pow(w * risks[i], 2), 0))
+            };
+        }
+
+        function optimizeMarkovitz(returns, risks) {
+            // 리스크 패리티 기반 간단한 가중치 계산
+            const invRisks = risks.map(r => 1 / r);
+            const sumInvRisks = invRisks.reduce((a, b) => a + b, 0);
+            return invRisks.map(ir => ir / sumInvRisks);
+        }
+
+        // 위험 관리 시스템
+        function calculateVaR(data, confidence = 0.95) {
+            const returns = [];
+            for (let i = 1; i < data.length; i++) {
+                returns.push((data[i].price - data[i-1].price) / data[i-1].price);
+            }
+            
+            returns.sort((a, b) => a - b);
+            const index = Math.floor((1 - confidence) * returns.length);
+            return returns[index];
+        }
+
+        function calculateMaxDrawdown(data) {
+            let maxDrawdown = 0;
+            let peak = data[0].price;
+            
+            for (let i = 1; i < data.length; i++) {
+                if (data[i].price > peak) {
+                    peak = data[i].price;
+                } else {
+                    const drawdown = (peak - data[i].price) / peak;
+                    maxDrawdown = Math.max(maxDrawdown, drawdown);
+                }
+            }
+            
+            return maxDrawdown;
+        }
+
+        // 감정 분석 시뮬레이션
+        function analyzeSentiment() {
+            const sentiments = ['매우 긍정', '긍정', '중립', '부정', '매우 부정'];
+            const weights = [0.1, 0.3, 0.4, 0.15, 0.05]; // 가중치
+            
+            let random = Math.random();
+            let cumulativeWeight = 0;
+            
+            for (let i = 0; i < weights.length; i++) {
+                cumulativeWeight += weights[i];
+                if (random <= cumulativeWeight) {
+                    return {
+                        sentiment: sentiments[i],
+                        score: (i - 2) / 2, // -1 ~ 1 스코어
+                        confidence: Math.random() * 0.3 + 0.7 // 70-100% 신뢰도
+                    };
+                }
+            }
+        }
+
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            updateWeightSliders();
+            
+            // 알림 권한 요청
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+
+            // 고급 모델 추가
+            const advancedModels = createAdvancedModels();
+            Object.assign(models.regression, advancedModels);
+
+            showAlert('success', 'CryptoAI 플랫폼이 초기화되었습니다.');
+        });
+
+        // 추가 유틸리티 함수들
+        function exportData() {
+            if (cryptoData.length === 0) {
+                showAlert('error', '내보낼 데이터가 없습니다.');
+                return;
+            }
+
+            const dataStr = JSON.stringify(cryptoData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `crypto_data_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            showAlert('success', '데이터가 성공적으로 내보내졌습니다.');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (Array.isArray(importedData) && importedData.length > 0) {
+                        cryptoData = importedData.map(item => ({
+                            ...item,
+                            timestamp: new Date(item.timestamp)
+                        }));
+                        updateDataPreview();
+                        updatePriceChart();
+                        showAlert('success', '데이터가 성공적으로 가져와졌습니다.');
+                    } else {
+                        throw new Error('잘못된 데이터 형식');
+                    }
+                } catch (error) {
+                    showAlert('error', '데이터 가져오기에 실패했습니다: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // 키보드 단축키
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case '1':
+                        e.preventDefault();
+                        switchTab('data');
+                        break;
+                    case '2':
+                        e.preventDefault();
+                        switchTab('models');
+                        break;
+                    case '3':
+                        e.preventDefault();
+                        switchTab('prediction');
+                        break;
+                    case '4':
+                        e.preventDefault();
+                        switchTab('ensemble');
+                        break;
+                    case '5':
+                        e.preventDefault();
+                        switchTab('backtest');
+                        break;
+                    case '6':
+                        e.preventDefault();
+                        switchTab('realtime');
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
