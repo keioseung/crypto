@@ -26,7 +26,7 @@ const io = new Server(server, {
   }
 });
 
-const PORT = process.env.PORT || 2000;
+const PORT = parseInt(process.env.PORT || '2000', 10);
 
 // 미들웨어 설정
 app.use(helmet());
