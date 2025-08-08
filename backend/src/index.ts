@@ -100,6 +100,9 @@ app.post('/api/v1/predictions', async (req, res) => {
     let result;
     if (model === 'sma') result = smaPredict(series, 10, steps);
     else if (model === 'ema') result = emaPredict(series, 12, steps);
+    else if (model === 'lr') result = linearRegressionPredict(series, steps);
+    else if (model === 'momentum') result = momentumPredict(series, 6, steps);
+    else if (model === 'meanrev') result = meanReversionPredict(series, 20, steps);
     else result = ensemblePredict(series, steps);
     res.json(result);
   } catch (e: any) {
@@ -110,10 +113,11 @@ app.post('/api/v1/predictions', async (req, res) => {
 // Classification
 app.post('/api/v1/classify', async (req, res) => {
   try {
-    const { series } = req.body as { series: number[] };
+    const { series, kind = 'trend' } = req.body as { series: number[]; kind?: string };
     if (!Array.isArray(series) || series.length < 10) return res.status(400).json({ error: 'invalid_series' });
-    const result = classifyTrend(series.slice(-60));
-    res.json(result);
+    if (kind === 'rsi') return res.json(classifyRSI(series));
+    if (kind === 'vol') return res.json(classifyVolatility(series));
+    return res.json(classifyTrend(series.slice(-60)));
   } catch (e: any) {
     res.status(500).json({ error: 'failed_to_classify', detail: e?.message });
   }
