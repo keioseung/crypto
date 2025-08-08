@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon src/index.ts",
     "build": "tsc",
-    "start": "ts-node src/index.ts",
+    "prestart": "npm run build",
+    "start": "node dist/index.js",
     "test": "jest"
   },
   "dependencies": {

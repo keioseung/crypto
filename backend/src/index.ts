@@ -21,17 +21,17 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:1000",
+    origin: process.env.FRONTEND_URL || "https://crypto-production-60f9.up.railway.app",
     methods: ["GET", "POST"]
   }
 });
 
-const PORT = parseInt(process.env.PORT || '2000', 10);
+const PORT = parseInt(process.env.PORT || '6060', 10);
 
 // 미들웨어 설정
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:1000",
+  origin: process.env.FRONTEND_URL || "https://crypto-production-60f9.up.railway.app",
   credentials: true
 }));
 app.use(compression());
