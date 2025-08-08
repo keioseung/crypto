@@ -11,7 +11,7 @@ console.log(`🌐 Process ID: ${process.pid}`);
 
 // CORS 설정
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'https://photo-production-7b03.up.railway.app',
+  origin: process.env.FRONTEND_URL || 'https://crypto-production-0c86.up.railway.app',
   credentials: true
 }));
 
@@ -26,10 +26,10 @@ app.get('/', (req, res) => {
     message: 'CryptoAI Backend is running!',
     timestamp: new Date().toISOString(),
     port: PORT,
-    environment: process.env.NODE_ENV || 'development',
+    environment: process.env.NODE_ENV || 'production',
     pid: process.pid,
     version: '1.0.0',
-    frontendUrl: process.env.FRONTEND_URL || 'https://photo-production-7b03.up.railway.app'
+    frontendUrl: process.env.FRONTEND_URL || 'https://crypto-production-0c86.up.railway.app'
   });
 });
 
@@ -69,7 +69,7 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server running on 0.0.0.0:${PORT}`);
   console.log(`📊 Health check: http://0.0.0.0:${PORT}/health`);
   console.log(`🔗 API endpoint: http://0.0.0.0:${PORT}/api/v1`);
-  console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL || 'https://photo-production-7b03.up.railway.app'}`);
+  console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL || 'https://crypto-production-0c86.up.railway.app'}`);
 });
 
 // 서버 에러 핸들링
