@@ -1,12 +1,12 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, LineChart, Activity, Cpu, Wallet } from 'lucide-react';
+import { Home, LineChart, Activity, Cpu, Wallet, FlaskConical } from 'lucide-react';
 
 const tabs = [
   { to: '/', icon: Home, label: 'Home' },
   { to: '/markets', icon: LineChart, label: 'Markets' },
   { to: '/predictions', icon: Cpu, label: 'AI' },
-  { to: '/backtesting', icon: Activity, label: 'Test' },
+  { to: '/research', icon: FlaskConical as any, label: 'Lab' },
   { to: '/portfolio', icon: Wallet, label: 'Portfolio' },
 ];
 

@@ -11,6 +11,7 @@ const TechnicalAnalysis = lazy(() => import('./pages/TechnicalAnalysis'))
 const Backtesting = lazy(() => import('./pages/Backtesting'))
 const Portfolio = lazy(() => import('./pages/Portfolio'))
 const Settings = lazy(() => import('./pages/Settings'))
+const Research = lazy(() => import('./pages/Research'))
 
 function App() {
   return (
@@ -49,6 +50,11 @@ function App() {
         <Route path="settings" element={
           <Suspense fallback={<LoadingSpinner />}>
             <Settings />
+          </Suspense>
+        } />
+        <Route path="research" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <Research />
           </Suspense>
         } />
       </Route>
