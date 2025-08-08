@@ -2,10 +2,10 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "echo 'Skipping build step'"
+    "buildCommand": "cd backend && npm run build"
   },
   "deploy": {
-    "startCommand": "npm start",
+    "startCommand": "cd backend && npm start",
     "healthcheckPath": "/api/v1/health",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
