@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Outlet } from 'react-router-dom';
 
 const nav = [
   { to: '/', label: 'Dashboard' },
@@ -31,14 +31,9 @@ const Layout: React.FC = () => {
         </div>
       </header>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <React.Suspense fallback={<div className="py-10 text-center text-dark-300">Loading...</div>}>
-          <div className="space-y-6">
-            {/* Routed content */}
-            <div id="content">
-              {/* Outlet comes from App.tsx */}
-            </div>
-          </div>
-        </React.Suspense>
+        <div className="space-y-6">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

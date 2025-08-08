@@ -1,0 +1,9 @@
+# Vite/Tailwind typical ignores
+node_modules
+.DS_Store
+
+# Build output
+/dist
+
+# Keep public tracked (do not ignore)
+# (empty on purpose)
