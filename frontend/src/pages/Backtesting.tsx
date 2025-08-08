@@ -37,7 +37,7 @@ const Backtesting: React.FC = () => {
   return (
     <div className="space-y-6">
       <Card title="Backtest Controls" actions={<button className="btn-primary" onClick={run}>Run</button>}>
-        <div className="text-sm text-dark-300">Strategy: Close > PrevClose (toy example)</div>
+        <div className="text-sm text-dark-300">Strategy: Close {'>'} PrevClose (toy example)</div>
       </Card>
       <Card title="Equity Curve">
         <LineChart series={[{ label: 'Equity', data: curve, color: '#34d399' }]} height={280} />
