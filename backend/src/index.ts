@@ -93,7 +93,7 @@ app.post('/api/v1/predictions', async (req, res) => {
 });
 
 // Classification
-app.post('/api/v1/classify', async (req, res) => {
+app.post('/api/v1/predictions/classify', async (req, res) => {
   try {
     const { series } = req.body as { series: number[] };
     if (!Array.isArray(series) || series.length < 10) return res.status(400).json({ error: 'invalid_series' });
