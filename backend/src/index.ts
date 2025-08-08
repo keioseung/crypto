@@ -27,7 +27,6 @@ const io = new Server(server, {
 });
 
 const PORT = process.env.PORT || 2000;
-const HOST = '0.0.0.0';
 
 // 미들웨어 설정
 app.use(helmet());
@@ -71,10 +70,10 @@ async function startServer() {
     // 크론잡 설정
     initializeCronJobs();
     
-    server.listen(PORT, HOST, () => {
-      logger.info(`🚀 CryptoAI Backend Server running on ${HOST}:${PORT}`);
-      logger.info(`📊 API Documentation: http://${HOST}:${PORT}/api/docs`);
-      logger.info(`🔌 WebSocket: ws://${HOST}:${PORT}`);
+    server.listen(PORT, '0.0.0.0', () => {
+      logger.info(`🚀 CryptoAI Backend Server running on 0.0.0.0:${PORT}`);
+      logger.info(`📊 API Documentation: http://0.0.0.0:${PORT}/api/docs`);
+      logger.info(`🔌 WebSocket: ws://0.0.0.0:${PORT}`);
     });
   } catch (error) {
     logger.error('Failed to start server:', error);
