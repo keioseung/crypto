@@ -8,6 +8,7 @@ import { useCandles } from '@/hooks/useCandles';
 import axios from 'axios';
 import { getApiUrl } from '@/config/api';
 import InfoBanner from '@/components/ui/InfoBanner';
+import Chip from '@/components/ui/Chip';
 
 const baseModels = [
   { key: 'sma', label: 'SMA', color: '#10b981' },
@@ -16,6 +17,13 @@ const baseModels = [
   { key: 'momentum', label: 'Momentum', color: '#22c55e' },
   { key: 'meanrev', label: 'MeanRev', color: '#60a5fa' },
   { key: 'ensemble', label: 'Ensemble', color: '#a78bfa' },
+];
+
+const presetSets: { name: string; models: string[] }[] = [
+  { name: 'Default', models: ['ensemble'] },
+  { name: 'Trend', models: ['ema','momentum'] },
+  { name: 'Range', models: ['sma','meanrev'] },
+  { name: 'All', models: ['sma','ema','lr','momentum','meanrev'] },
 ];
 
 const Predictions: React.FC = () => {
@@ -59,6 +67,10 @@ const Predictions: React.FC = () => {
 
   useEffect(() => { runPredict(); runMultiCls(); }, [candles, selected, steps]);
 
+  const toggleModel = (key: string) => {
+    setSelected(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+  };
+
   const lines = [
     { label: 'Close', data: base, color: '#60a5fa' },
     ...selected.map((m) => ({ label: baseModels.find(x=>x.key===m)!.label, data: preds[m] || [], color: baseModels.find(x=>x.key===m)!.color, dashed: true })),
@@ -85,9 +97,21 @@ const Predictions: React.FC = () => {
       <Card title="Prediction Controls" actions={
         <div className="flex flex-wrap gap-2">
           <MarketPicker market={market} onMarket={setMarket} minutes={minutes} onMinutes={setMinutes} />
-          <select className="input w-44" multiple value={selected} onChange={(e)=> setSelected(Array.from(e.target.selectedOptions).map(o=>o.value))}>
-            {baseModels.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
-          </select>
+          <div className="flex flex-wrap gap-2">
+            {presetSets.map(preset => (
+              <Chip
+                key={preset.name}
+                label={preset.name}
+                onClick={() => setSelected(preset.models)}
+                variant={selected.length === preset.models.length && selected.every(s => preset.models.includes(s)) ? 'primary' : 'outline'}
+              />
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {baseModels.map(m => (
+              <Chip key={m.key} label={m.label} onClick={() => toggleModel(m.key)} variant={selected.includes(m.key)?'primary':'outline'} />
+            ))}
+          </div>
           <input type="number" min={6} max={72} step={6} className="input w-28" value={steps} onChange={e=>setSteps(Number(e.target.value))} />
         </div>
       }>
