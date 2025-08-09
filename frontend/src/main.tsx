@@ -5,6 +5,9 @@ import { QueryClient, QueryClientProvider } from 'react-query'
 import { Toaster } from 'react-hot-toast'
 import App from './App.tsx'
 import './index.css'
+import { applyChartTheme } from './theme/chartTheme'
+
+applyChartTheme()
 
 // React Query 클라이언트 설정
 const queryClient = new QueryClient({

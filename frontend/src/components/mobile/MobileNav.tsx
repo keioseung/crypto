@@ -12,11 +12,11 @@ const tabs = [
 
 const MobileNav: React.FC = () => {
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 bg-dark-900/80 backdrop-blur border-t border-dark-800 md:hidden">
+    <nav className="fixed bottom-0 inset-x-0 z-40 bg-dark-900/85 backdrop-blur border-t border-dark-800 md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="grid grid-cols-5">
         {tabs.map(t => (
-          <NavLink key={t.to} to={t.to} className={({isActive})=>`py-2 flex flex-col items-center text-xs ${isActive?'text-white':'text-dark-300'}`}>
-            <t.icon className="h-5 w-5" />
+          <NavLink key={t.to} to={t.to} className={({isActive})=>`py-3 flex flex-col items-center text-[11px] ${isActive?'text-white':'text-dark-300'}`}>
+            <t.icon className="h-5 w-5 mb-0.5" />
             <span>{t.label}</span>
           </NavLink>
         ))}

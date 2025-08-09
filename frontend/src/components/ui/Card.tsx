@@ -4,38 +4,18 @@ type CardProps = {
   title?: string;
   actions?: React.ReactNode;
   children?: React.ReactNode;
-  className?: string;
-  footer?: React.ReactNode;
-  padding?: 'none' | 'sm' | 'md';
 };
 
-const paddingStyles = {
-    none: 'p-0',
-    sm: 'p-3',
-    md: 'p-5'
-}
-
-export const Card: React.FC<CardProps> = ({ title, actions, children, className, footer, padding = 'md' }) => {
+export const Card: React.FC<CardProps> = ({ title, actions, children }) => {
   return (
-    <div className={`
-        bg-gray-800/50 rounded-lg border border-gray-700/50 shadow-lg backdrop-blur-sm
-        flex flex-col
-        ${className}
-    `}>
+    <div className="rounded-xl border border-dark-800 bg-dark-900/60 backdrop-blur shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
       {(title || actions) && (
-        <div className="px-5 py-4 border-b border-gray-700/50 flex items-center justify-between">
-          {title && <h3 className="text-base font-bold text-white">{title}</h3>}
+        <div className="px-4 sm:px-5 py-3 border-b border-dark-800 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-white/90">{title}</h3>
           <div className="flex items-center gap-2">{actions}</div>
         </div>
       )}
-      <div className={`flex-grow ${paddingStyles[padding]}`}>
-        {children}
-      </div>
-      {footer && (
-        <div className="px-5 py-3 border-t border-gray-700/50 text-sm text-gray-400">
-            {footer}
-        </div>
-      )}
+      <div className="p-4 sm:p-5">{children}</div>
     </div>
   );
 };
