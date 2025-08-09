@@ -39,7 +39,20 @@ const Research: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <InfoBanner message="This page is for research purposes only. The data and strategies presented here are not financial advice and should not be used for actual trading. Always do your own research and consult with a financial advisor." />
+      <InfoBanner
+        title="Research 탭 사용 안내"
+        steps={[
+          '1) 마켓/주기/기간을 선택하면 최근 데이터가 로드됩니다.',
+          '2) Analyze Fixed Period를 눌러 고정 시간 전략의 승률/수익률 상위 조합을 확인하세요.',
+          '3) 아래 지표 패널에서 RSI/MACD/ADX/Ichimoku 등 상태를 함께 비교하세요.',
+          '4) 결과는 리서치 참고용이며 실제 매매 전 추가 검증이 필요합니다.'
+        ]}
+        tips={[
+          '기간(days)을 늘리면 표본이 늘어 더 안정적인 통계가 됩니다.',
+          '보유시간(분)은 전략의 매수→매도 간격을 의미합니다.',
+          '지표 임계값(예: RSI 30/70, ADX 25 등)을 교차 검토해 리스크를 줄이세요.'
+        ]}
+      />
       <Card title="Research Controls" actions={
         <div className="flex flex-wrap gap-2">
           <select className="input w-36" value={market} onChange={e=>setMarket(e.target.value)}>
